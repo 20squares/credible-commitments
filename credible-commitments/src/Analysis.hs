@@ -6,6 +6,7 @@ module Analysis where
 
 import OpenGames.Engine.Engine
 import PD
+import Coordinator
 
 
 -------------
@@ -43,7 +44,6 @@ conditionalCooperateTransfer (action,transfer) =
 -- Bob strategy
 bobStrategyCooperate = cooperateStrategy ::- Nil
 
--- 3. Commitment
 -- Alice chooses to commit
 aliceStrategyCommit :: Kleisli Stochastic () (Either () ())
 aliceStrategyCommit = pureAction commitmentChoice
@@ -59,6 +59,33 @@ bobTransferStrategy =
        Cooperate -> (playDeterministically 1)
        Defect    -> (playDeterministically 0)
     )
+
+-- 3. Coordinator game
+-- 3.1 Bidding
+
+-- NOTE: simplified assumption regarding bidding
+biddingStrategy :: Kleisli Stochastic () Double
+biddingStrategy = pureAction 2
+
+-- Strategy for the first player to commit
+-- NOTE we are feeding the information for first player and second player name identifiers forward
+firstPlayerStrategyCommit :: Kleisli Stochastic (Agent1,Agent2) (Either (Agent1,Agent2) ())
+firstPlayerStrategyCommit =
+  Kleisli 
+   (\agents -> playDeterministically $ Left agents)
+
+-- Fix strategy for coordinator to choose
+-- NOTE we default to player B in case of a tie for simplicity
+choosePlayerToCommit :: Kleisli Stochastic ((Agent,Bid),(Agent,Bid)) Agent1
+choosePlayerToCommit =
+  Kleisli $
+    (\((agentA,bidA),(agentB,bidB)) ->
+        if bidA > bidB
+           then playDeterministically agentA
+           else playDeterministically agentB
+        )
+
+-- 4. Full strategy profiles
 
 -- Aggregating into full strategy
 strategyTupleCommit =
@@ -77,6 +104,18 @@ strategyTupleCommitTransfer =
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil
 
+-- Aggregating into full strategy for commitment + transfer with coordinator
+strategyTupleCoordinator =
+  biddingStrategy               -- ^ bidding strategy of player A
+  ::- biddingStrategy           -- ^ bidding strategy of player A
+  ::- choosePlayerToCommit      -- ^ coordinator choose the player who can commit
+  ::- firstPlayerStrategyCommit -- ^ which game does Alice choose?
+  ::- cooperateStrategy         -- ^ if in the commitment game which action does A choose?
+  ::- bobTransferStrategy       -- ^ if in the commitment game which transfer does B choose?
+  ::- defectStrategy            -- ^ if in the pd game which action does A choose?
+  ::- defectStrategy            -- ^ if in the pd game which action does B choose?
+  ::- Nil
+
 
 
 -----------------------
@@ -91,23 +130,30 @@ isEquilibriumPrisonersDilemma strategTupleDefect
 -}
 
 -- 2. Commitment
-isEquilibriumPrisonersDilemmaCommitment aliceCommitment strat = generateIsEq $ evaluate (prisonersDilemmaBobUnderCommitment aliceCommitment) strat void
+isEquilibriumPrisonersDilemmaCommitment commitment strat = generateIsEq $ evaluate (prisonersDilemmaBobUnderCommitment commitment) strat void
 
 {- Example usage:
 isEquilibriumPrisonersDilemmaCommitment conditionalCooperate bobStrategyCooperate
 -}
 
 -- 3. Branching game
-isEquilibriumPrisonersDilemmaAliceChoice aliceCommitment strat = generateIsEq $ evaluate (prisonersDilemmaAliceChoice aliceCommitment) strat void
+isEquilibriumPrisonersDilemmaAliceChoice commitment strat = generateIsEq $ evaluate (prisonersDilemmaAliceChoice commitment) strat void
 
 {- Example usage:
 isEquilibriumPrisonersDilemmaAliceChoice conditionalCooperate strategyTupleCommit
 -}
 
 -- 4. Branching game with transfer
-isEquilibriumPrisonersDilemmaAliceChoiceTransfer aliceCommitment strat = generateIsEq $ evaluate (prisonersDilemmaAliceChoiceTransfer aliceCommitment) strat void
+isEquilibriumPrisonersDilemmaAliceChoiceTransfer commitment strat = generateIsEq $ evaluate (prisonersDilemmaAliceChoiceTransfer commitment) strat void
 
 {- Example usage:
 isEquilibriumPrisonersDilemmaAliceChoiceTransfer conditionalCooperateTransfer strategyTupleCommitTransfer
+-}
+
+-- 5. Coordinator game 
+isEquilibriumPrisonersDilemmaCoordinator commitment strat = generateIsEq $ evaluate (coordinatorGameWithCredibleCommitments "Alice" "Bob"  commitment) strat void
+
+{- Example usage:
+isEquilibriumPrisonersDilemmaCoordinator conditionalCooperateTransfer strategyTupleCoordinator
 -}
 

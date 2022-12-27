@@ -30,11 +30,9 @@ type Agent1 = Agent
 type Agent2 = Agent
 
 -- Include dependency on players' roles into the game choice definition
-gameChoice :: (Agent1,Agent2) -> [Either (Agent1,Agent2) ()]
-gameChoice players =
-  [commitmentChoiceDependency players, pdChoice]
-  where
-     commitmentChoiceDependency players = Left players
+gameChoice :: (Agent1,(Agent1,Agent2)) -> [Either (Agent1,Agent2) ()]
+gameChoice (_,agents) =
+  [Left agents, pdChoice]
 
 -- Determines allocation of payoffs
 payoffsBidding :: Agent -> Agent -> (Bid,Bid,PlayerChoice) -> (Transfer1,Transfer2,Bid,Agent1,Agent2)
@@ -105,7 +103,7 @@ prisonersDilemmaAliceChoiceRoleDependency commitment = [opengame|
    feedback  :      ;
 
    :----------------------------:
-   inputs    : firstAgent,secondAgent     ;
+   inputs    : firstAgent,(firstAgent,secondAgent) ;
    feedback  :      ;
    operation : dependentRoleDecision $ gameChoice ;
    outputs   : gameDecision ;
@@ -167,4 +165,31 @@ coordinator agentA agentB payoffBidding = [opengame|
    returns   :      ;
   |]
 
- 
+-- 2.2. Connecting the games
+-- NOTE we use the allocation rule defined above
+-- NOTE we fix a give commitment strategy; can be changed later
+coordinatorGameWithCredibleCommitments agentA agentB commitment = [opengame|
+
+   inputs    :   ;
+   feedback  :   ;
+
+   :----------------------------:
+   inputs    :  ;
+   feedback  :      ;
+   operation : coordinator agentA agentB payoffsBidding ;
+   outputs   : firstAgent,secondAgent ;
+   returns   : ;
+
+   inputs    :  firstAgent,secondAgent;
+   feedback  :      ;
+   operation : prisonersDilemmaAliceChoiceRoleDependency commitment ;
+   outputs   : ;
+   returns   : ;
+
+
+   :----------------------------:
+
+   outputs   : ;
+   returns   :      ;
+  |]
+
