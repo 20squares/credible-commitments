@@ -13,8 +13,9 @@ import OpenGames.Preprocessor
 
 --------------
 -- 0. Overview
--- This file contains three simple simultaneous move games: prisoner dilemma (a social dilemma), meeting in new york (coordination game), and matching pennies (anti-coordination game)
-
+{-
+This module contains simple pd games including ones with credible commitments
+-}
 -- Auxiliary definitions for avoiding parser complications
 commitmentChoice = Left ()
 pdChoice         = Right ()
