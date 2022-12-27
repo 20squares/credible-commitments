@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Analysis where
 
@@ -27,9 +28,15 @@ strategyTupleDefect = defectStrategy ::- defectStrategy ::- Nil
 -- ^ Both players defect with certainty
 
 -- 2. Commitment
--- Commitment strat
+-- Commitment strategy
 conditionalCooperate action =
   if action == Cooperate
+     then Cooperate
+     else Defect
+
+-- Commitment strategy with transfer
+conditionalCooperateTransfer (action,transfer) =
+  if action == Cooperate && transfer >= 1
      then Cooperate
      else Defect
 
@@ -44,6 +51,15 @@ aliceStrategyCommit = pureAction commitmentChoice
 -- Alice chooses not to commit - branch into PD
 aliceStrategyPD = pureAction pdChoice
 
+-- Bob transfer strategy
+bobTransferStrategy :: Kleisli Stochastic ActionPD Double
+bobTransferStrategy =
+  Kleisli $
+    (\case
+       Cooperate -> (playDeterministically 1)
+       Defect    -> (playDeterministically 0)
+    )
+
 -- Aggregating into full strategy
 strategyTupleCommit =
   aliceStrategyCommit    -- ^ which game does Alice choose?
@@ -51,6 +67,17 @@ strategyTupleCommit =
   ::- defectStrategy     -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy     -- ^ if in the pd game which action does Bob choose?
   ::- Nil 
+
+-- Aggregating into full strategy for commitment + transfer
+strategyTupleCommitTransfer =
+  aliceStrategyCommit     -- ^ which game does Alice choose?
+  ::- cooperateStrategy   -- ^ if in the commitment game which action does Bob choose?
+  ::- bobTransferStrategy -- ^ if in the commitment game which transfer does Bob choose?
+  ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
+  ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
+  ::- Nil
+
+
 
 -----------------------
 -- Equilibrium Analysis
@@ -75,5 +102,12 @@ isEquilibriumPrisonersDilemmaAliceChoice aliceCommitment strat = generateIsEq $ 
 
 {- Example usage:
 isEquilibriumPrisonersDilemmaAliceChoice conditionalCooperate strategyTupleCommit
+-}
+
+-- 4. Branching game with transfer
+isEquilibriumPrisonersDilemmaAliceChoiceTransfer aliceCommitment strat = generateIsEq $ evaluate (prisonersDilemmaAliceChoiceTransfer aliceCommitment) strat void
+
+{- Example usage:
+isEquilibriumPrisonersDilemmaAliceChoiceTransfer conditionalCooperateTransfer strategyTupleCommitTransfer
 -}
 

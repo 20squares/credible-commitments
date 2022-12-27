@@ -15,7 +15,9 @@ import OpenGames.Preprocessor
 -- 0. Overview
 -- This file contains three simple simultaneous move games: prisoner dilemma (a social dilemma), meeting in new york (coordination game), and matching pennies (anti-coordination game)
 
-
+-- Auxiliary definitions for avoiding parser complications
+commitmentChoice = Left ()
+pdChoice         = Right ()
 
 -----------------------
 -- 1. Types and payoffs
@@ -109,14 +111,9 @@ prisonersDilemmaBobUnderCommitment aliceCommitment = [opengame|
    returns   :      ;
   |]
 
--- 1.3. combined branching game
--- NOTE this is a branching game; only one of the both will be played
+-- combined branching game
+-- NOTE this is a branching game; only one of the possible branches will be played
 branchingGame aliceCommitment = (prisonersDilemmaBobUnderCommitment aliceCommitment) +++ prisonersDilemmaGame
-
--- auxiliary definitions for avoiding parser complications
-commitmentChoice = Left ()
-pdChoice         = Right ()
-
 
 prisonersDilemmaAliceChoice aliceCommitment = [opengame|
 
@@ -143,4 +140,80 @@ prisonersDilemmaAliceChoice aliceCommitment = [opengame|
    returns   :      ;
   |]
 
+-- 1.2 Prisoner's dilemma with commitment device _plus_ additional transfer by Bob
+-- NOTE There are other options - explore this if of interest
+prisonersDilemmaBobUnderCommitmentTransfer aliceCommitment = [opengame|
+
+   inputs    :      ;
+   feedback  :      ;
+
+   :----------------------------:
+   inputs    :      ;
+   feedback  :      ;
+   operation : dependentDecision "Bob" (const [Cooperate,Defect]);
+   outputs   : decisionBobCooperate ;
+   returns   : payoffBob - decisionBobTransfer;
+
+   inputs    : decisionBobCooperate ;
+   feedback  :      ;
+   operation : dependentDecision "Bob" (const [0,1,2,3]);
+   outputs   : decisionBobTransfer ;
+   returns   : payoffBob - decisionBobTransfer;
+   // Bob's strategy is conditional on his cooperate decision before
+
+   inputs    : (decisionBobCooperate,decisionBobTransfer) ;
+   feedback  :      ;
+   operation : forwardFunction $ aliceCommitment ;
+   outputs   : decisionAlice ;
+   returns   : ;
+   // Alice's strategic choice is substituted by a computation
+
+   inputs    : decisionAlice, decisionBobCooperate ;
+   feedback  : ;
+   operation : forwardFunction $ uncurry $ prisonersDilemmaMatrix ;
+   outputs   : (payoffAlice,payoffBob);
+   returns   : ;
+
+   inputs    : payoffAlice  ;
+   feedback  : ;
+   operation : addPayoffs "Alice" ;
+   outputs   : ;
+   returns   : ;
+   // We are doing book-keeping for Alice in case we want to embedd that game into a larger component
+
+   :----------------------------:
+
+   outputs   :      ;
+   returns   :      ;
+  |]
+
+
+-- combined branching game
+-- NOTE this is a branching game; only one of the possible branches will be played
+branchingGameTransfer aliceCommitment = (prisonersDilemmaBobUnderCommitmentTransfer aliceCommitment) +++ prisonersDilemmaGame
+
+prisonersDilemmaAliceChoiceTransfer aliceCommitment = [opengame|
+
+   inputs    :      ;
+   feedback  :      ;
+
+   :----------------------------:
+   inputs    :      ;
+   feedback  :      ;
+   operation : dependentDecision "Alice" (const [commitmentChoice,pdChoice]);
+   outputs   : gameDecisionAlice ;
+   returns   : 0 ;
+
+   inputs    : gameDecisionAlice ;
+   feedback  :      ;
+   operation : branchingGameTransfer aliceCommitment;
+   outputs   : discard;
+   returns   : ;
+   // discard the output
+
+   :----------------------------:
+
+   outputs   :      ;
+   returns   :      ;
+  |]
 
