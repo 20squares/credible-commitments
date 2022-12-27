@@ -16,14 +16,16 @@ import OpenGames.Preprocessor
 {-
 This module contains simple pd games including ones with credible commitments
 -}
--- Auxiliary definitions for avoiding parser complications
-commitmentChoice = Left ()
-pdChoice         = Right ()
 
 -----------------------
 -- 1. Types and payoffs
 
--- 1.0. Prisoner's dilemma
+-- Auxiliary definitions for avoiding parser complications
+commitmentChoice = Left ()
+pdChoice         = Right ()
+empty            = ()
+
+-- Avaliable actions
 data ActionPD = Cooperate | Defect
   deriving (Eq, Ord, Show)
 
@@ -37,8 +39,8 @@ prisonersDilemmaMatrix Defect Defect = (1,1)
 
 
 --------------------
--- 1. Representation
--- 1.0 Prisoner's dilemma
+-- 2. Representation
+-- 2.0 Prisoner's dilemma
 -- NOTE We make this more verbose than needed so that we can also export the payoff if we want to
 prisonersDilemmaGame = [opengame|
 
@@ -72,7 +74,7 @@ prisonersDilemmaGame = [opengame|
    returns   :      ;
   |]
 
--- 1.1 Prisoner's dilemma with commitment device; modelled as a function
+-- 2.1 Prisoner's dilemma with commitment device; modelled as a function
 -- NOTE There are other options - explore this if of interest
 prisonersDilemmaBobUnderCommitment aliceCommitment = [opengame|
 
@@ -141,7 +143,7 @@ prisonersDilemmaAliceChoice aliceCommitment = [opengame|
    returns   :      ;
   |]
 
--- 1.2 Prisoner's dilemma with commitment device _plus_ additional transfer by Bob
+-- 2.2 Prisoner's dilemma with commitment device _plus_ additional transfer by Bob
 -- NOTE There are other options - explore this if of interest
 prisonersDilemmaBobUnderCommitmentTransfer aliceCommitment = [opengame|
 
