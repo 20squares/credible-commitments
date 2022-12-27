@@ -18,17 +18,35 @@ import PD
 This module contains a model with coordinator
 -}
 
------------------------------
--- 1. Auxiliary functionality
+---------------------------------------
+-- 1. Auxiliary functionality and types
+-- Some type aliases to improve readability
+type Bid = Double
+type PlayerChoice = String
+type Transfer = Double
+type Transfer1 = Transfer
+type Transfer2 = Transfer
+type Agent1 = Agent
+type Agent2 = Agent
 
 -- Include dependency on players' roles into the game choice definition
+gameChoice :: (Agent1,Agent2) -> [Either (Agent1,Agent2) ()]
 gameChoice players =
   [commitmentChoiceDependency players, pdChoice]
   where
      commitmentChoiceDependency players = Left players
 
+-- Determines allocation of payoffs
+payoffsBidding :: Agent -> Agent -> (Bid,Bid,PlayerChoice) -> (Transfer1,Transfer2,Bid,Agent1,Agent2)
+payoffsBidding agentA agentB (bidAgentA, bidAgentB, choicePlayerToCommit) =
+  case choicePlayerToCommit of
+    "A" -> (-bidAgentA,0,bidAgentA,agentA,agentB)
+    "B" -> (0,-bidAgentB,bidAgentB,agentB,agentA)
+
+
 --------------------
 -- 2. Representation
+-- 2.0. Game setup
 prisonersDilemmaRoleDependency commitment = [opengame|
 
    inputs    : firstAgent,secondAgent ;
@@ -107,3 +125,46 @@ prisonersDilemmaAliceChoiceRoleDependency commitment = [opengame|
   |]
 
 
+-- 2.1 Coordinator
+-- Defines a game where to agents, e.g. Alice and Bob, bid for to the coordinator to be the ones setting the commitment
+coordinator agentA agentB payoffBidding = [opengame|
+
+   inputs    :   ;
+   feedback  :   ;
+
+   :----------------------------:
+   inputs    :  ;
+   feedback  :      ;
+   operation : dependentDecision agentA $ const [0,1,2,3]  ;
+   outputs   : bidAgentA ;
+   returns   : costsA ;
+   // Agent 1 can bid on being the first to set the commitment
+
+   inputs    :  ;
+   feedback  :      ;
+   operation : dependentDecision agentB $ const [0,1,2,3]  ;
+   outputs   : bidAgentB ;
+   returns   : costsB ;
+   // Agent 2 can bid on being the first to set the commitment
+
+   inputs    : (agentA,bidAgentA),(agentA,bidAgentB) ;
+   feedback  :      ;
+   operation : dependentDecision "coordinator" $ const [agentA,agentB] ;
+   outputs   : choicePlayerToCommit;
+   returns   : winningBid;
+   // discard the output
+
+   inputs    : bidAgentA, bidAgentB, choicePlayerToCommit ;
+   feedback  :   ;
+   operation : forwardFunction $ payoffBidding agentA agentB;
+   outputs   : costsA,costsB,winningBid,firstAgent,secondAgent;
+   returns   : ;
+   // discard the output
+
+   :----------------------------:
+
+   outputs   : firstAgent,secondAgent;
+   returns   :      ;
+  |]
+
+ 
