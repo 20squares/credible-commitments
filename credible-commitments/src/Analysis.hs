@@ -52,8 +52,8 @@ aliceStrategyCommit = pureAction commitmentChoice
 aliceStrategyPD = pureAction pdChoice
 
 -- Bob transfer strategy
-bobTransferStrategy :: Kleisli Stochastic ActionPD Double
-bobTransferStrategy =
+transferStrategy :: Kleisli Stochastic ActionPD Double
+transferStrategy =
   Kleisli $
     (\case
        Cooperate -> (playDeterministically 1)
@@ -67,6 +67,11 @@ bobTransferStrategy =
 biddingStrategy :: Kleisli Stochastic () Double
 biddingStrategy = pureAction 2
 
+biddingStrategyZero :: Kleisli Stochastic () Double
+biddingStrategyZero = pureAction 0
+
+
+
 -- Strategy for the first player to commit
 -- NOTE we are feeding the information for first player and second player name identifiers forward
 firstPlayerStrategyCommit :: Kleisli Stochastic (Agent1,Agent2) (Either (Agent1,Agent2) ())
@@ -78,15 +83,16 @@ firstPlayerStrategyCommit =
 -- NOTE we default to player B in case of a tie for simplicity
 choosePlayerToCommit :: Kleisli Stochastic ((Agent,Bid),(Agent,Bid)) Agent1
 choosePlayerToCommit =
-  Kleisli $
+  Kleisli
     (\((agentA,bidA),(agentB,bidB)) ->
-        if bidA > bidB
-           then playDeterministically agentA
-           else playDeterministically agentB
-        )
+    if bidA > bidB
+        then playDeterministically agentA
+        else if bidA < bidB
+                then playDeterministically agentB
+                else uniformDist [agentA,agentB]
+    )
 
 -- 4. Full strategy profiles
-
 -- Aggregating into full strategy
 strategyTupleCommit =
   aliceStrategyCommit    -- ^ which game does Alice choose?
@@ -99,7 +105,7 @@ strategyTupleCommit =
 strategyTupleCommitTransfer =
   aliceStrategyCommit     -- ^ which game does Alice choose?
   ::- cooperateStrategy   -- ^ if in the commitment game which action does Bob choose?
-  ::- bobTransferStrategy -- ^ if in the commitment game which transfer does Bob choose?
+  ::- transferStrategy -- ^ if in the commitment game which transfer does Bob choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil
@@ -107,11 +113,11 @@ strategyTupleCommitTransfer =
 -- Aggregating into full strategy for commitment + transfer with coordinator
 strategyTupleCoordinator =
   biddingStrategy               -- ^ bidding strategy of player A
-  ::- biddingStrategy           -- ^ bidding strategy of player A
+  ::- biddingStrategy           -- ^ bidding strategy of player B
   ::- choosePlayerToCommit      -- ^ coordinator choose the player who can commit
-  ::- firstPlayerStrategyCommit -- ^ which game does Alice choose?
+  ::- firstPlayerStrategyCommit -- ^ which game does player A or B choose?
   ::- cooperateStrategy         -- ^ if in the commitment game which action does A choose?
-  ::- bobTransferStrategy       -- ^ if in the commitment game which transfer does B choose?
+  ::- transferStrategy       -- ^ if in the commitment game which transfer does B choose?
   ::- defectStrategy            -- ^ if in the pd game which action does A choose?
   ::- defectStrategy            -- ^ if in the pd game which action does B choose?
   ::- Nil

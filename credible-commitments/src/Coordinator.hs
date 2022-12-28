@@ -37,10 +37,9 @@ gameChoice (_,agents) =
 -- Determines allocation of payoffs
 payoffsBidding :: Agent -> Agent -> (Bid,Bid,PlayerChoice) -> (Transfer1,Transfer2,Bid,Agent1,Agent2)
 payoffsBidding agentA agentB (bidAgentA, bidAgentB, choicePlayerToCommit) =
-  case choicePlayerToCommit of
-    "A" -> (-bidAgentA,0,bidAgentA,agentA,agentB)
-    "B" -> (0,-bidAgentB,bidAgentB,agentB,agentA)
-
+  if choicePlayerToCommit == agentA
+     then (-bidAgentA,0,bidAgentA,agentA,agentB)
+     else (0,-bidAgentB,bidAgentB,agentB,agentA)
 
 --------------------
 -- 2. Representation
@@ -145,19 +144,17 @@ coordinator agentA agentB payoffBidding = [opengame|
    returns   : costsB ;
    // Agent 2 can bid on being the first to set the commitment
 
-   inputs    : (agentA,bidAgentA),(agentA,bidAgentB) ;
+   inputs    : (agentA,bidAgentA),(agentB,bidAgentB) ;
    feedback  :      ;
    operation : dependentDecision "coordinator" $ const [agentA,agentB] ;
    outputs   : choicePlayerToCommit;
    returns   : winningBid;
-   // discard the output
 
    inputs    : bidAgentA, bidAgentB, choicePlayerToCommit ;
    feedback  :   ;
    operation : forwardFunction $ payoffBidding agentA agentB;
    outputs   : costsA,costsB,winningBid,firstAgent,secondAgent;
    returns   : ;
-   // discard the output
 
    :----------------------------:
 
@@ -180,7 +177,7 @@ coordinatorGameWithCredibleCommitments agentA agentB commitment = [opengame|
    outputs   : firstAgent,secondAgent ;
    returns   : ;
 
-   inputs    :  firstAgent,secondAgent;
+   inputs    : firstAgent,secondAgent;
    feedback  :      ;
    operation : prisonersDilemmaAliceChoiceRoleDependency commitment ;
    outputs   : ;
