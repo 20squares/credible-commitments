@@ -99,7 +99,7 @@ strategyTupleCommit =
   ::- cooperateStrategy  -- ^ if in the commitment game which action does Bob choose?
   ::- defectStrategy     -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy     -- ^ if in the pd game which action does Bob choose?
-  ::- Nil 
+  ::- Nil
 
 -- Aggregating into full strategy for commitment + transfer
 strategyTupleCommitTransfer =
@@ -132,7 +132,7 @@ strategyTupleCoordinator =
 isEquilibriumPrisonersDilemma strat = generateIsEq $ evaluate prisonersDilemmaGame strat void
 
 {- Example usage:
-isEquilibriumPrisonersDilemma strategTupleDefect
+isEquilibriumPrisonersDilemma strategyTupleDefect
 -}
 
 -- 2. Commitment
