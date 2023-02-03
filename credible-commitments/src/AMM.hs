@@ -6,6 +6,7 @@ module AMM where
 import OpenGames.Engine.Engine
 import OpenGames.Preprocessor
 import Data.List (permutations)
+import Distribution.SPDX (LicenseId(PDDL_1_0))
 
 {-
 Provides basic functionality for an AMM and the open game components
@@ -16,7 +17,10 @@ Provides basic functionality for an AMM and the open game components
 TODO
 - We probably should start with 2 transactions only to keep it as close as possible to the PD
 - These transactions should be identical (this should feature the PD)
-- We assume that only the first transaction pays a reward 
+- We assume that only the first transaction pays a reward to the coordinator
+- What choices should the players make?
+   - Choose from a subset of transactions; maybe two transactions each? Again, similar to the PD
+   - Choose bid for coordinator
 -}
 
 -----------
@@ -33,6 +37,7 @@ data Result = Swap0Out () | Swap1Out ()
   deriving (Show, Ord, Eq)
 
 type Transaction = (SwapTransaction, Fee, PlayerID)
+
 
 -------------------------
 -- 2. Auxiliary functions
@@ -78,11 +83,6 @@ computePayoffCoordinator :: [(Result,ContractState, Fee, PlayerID)] -> (Fee, (Pl
 computePayoffCoordinator ls =
   let (_,_,fee,_) = head ls
       in (fee,(playerID, -fee))
--- player optimizes the order of choosing what to thread through or not.
-
--- probably good assumption that the player can inject a set of own txs
-
--- What is the goal function of the builder? Max revenue from payments for txs
 
 ----------------
 -- 3. Open games
