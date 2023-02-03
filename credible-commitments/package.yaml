@@ -2,9 +2,9 @@ name:                credible-commitments
 version:             0.1.0.0
 github:              "githubuser/credible-commitments"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2022 Author name here"
+author:              "Philipp Zahn"
+maintainer:          "philip@20squares.xyz"
+copyright:           "2022 20squares"
 
 extra-source-files:
 - README.md
