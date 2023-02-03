@@ -6,7 +6,6 @@ module AMM where
 import OpenGames.Engine.Engine
 import OpenGames.Preprocessor
 import Data.List (permutations)
-import Distribution.SPDX (LicenseId(PDDL_1_0))
 
 {-
 Provides basic functionality for an AMM and the open game components
@@ -81,7 +80,7 @@ actionSpaceCoordinator (lsTransaction, _ ) = permutations lsTransaction
 -- NOTE We assume here that only the first transaction has to pay a fee
 computePayoffCoordinator :: [(Result,ContractState, Fee, PlayerID)] -> (Fee, (PlayerID,Fee))
 computePayoffCoordinator ls =
-  let (_,_,fee,_) = head ls
+  let (_,_,fee,playerID) = head ls
       in (fee,(playerID, -fee))
 
 ----------------
@@ -131,9 +130,9 @@ payoffs = [opengame|
 
   inputs : lsOutput ;
   operation : forwardFunction $ computePayoffCoordinator ;
-  outputs : payoffCoordinator, payoffs ; -- TODO
+  outputs : payoffCoordinator, payoffPlayer ;
 
-  inputs : payoffCoordinator, id ;
+  inputs :  payoffPlayer ;
   operation : addRolePayoffs ;
   outputs : ;
   
@@ -142,6 +141,33 @@ payoffs = [opengame|
   returns : ;
 |]
 
+{--
+chooseTransactions fee1P1 fee2P1 fee1P2 fee2P2 =
+  [opengame|
+  inputs: state ;
+  feedback: ;
+
+  :------:
+
+  inputs :  state ;
+  operation : dependentDecision "
+  outputs : lsTransactionOrdered;
+  returns : payoffCoordinator;
+
+  inputs : lsTransactionOrdered, state ;
+  operation : amm ;
+  outputs : lsOutput;
+
+  inputs : lsOutput ;
+  operation : payoffs ; 
+  outputs : payoffCoordinator ;
+
+  :------:
+  outputs :  ;
+  returns : ;
+
+|]
+-}
 
 completeGame = [opengame|
   inputs: transactionsSubmitted, state ;
@@ -165,8 +191,5 @@ completeGame = [opengame|
   :------:
   outputs :  ;
   returns : ;
-
-
-
 
 |]
