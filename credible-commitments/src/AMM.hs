@@ -15,7 +15,8 @@ Provides basic functionality for an AMM and the open game components
 {-
 TODO
 - We probably should start with 2 transactions only to keep it as close as possible to the PD
-- We assume that only the first transaction gets a reward
+- These transactions should be identical (this should feature the PD)
+- We assume that only the first transaction pays a reward 
 -}
 
 -----------
@@ -24,14 +25,14 @@ type Fee = Double
 
 type ContractState = (Double, Double)
 
-type ID = String
+type PlayerID = String
 
 data SwapTransaction = Swap0 Double | Swap1 Double
   deriving (Show, Ord, Eq)
 data Result = Swap0Out () | Swap1Out ()
   deriving (Show, Ord, Eq)
 
-type Transaction = (SwapTransaction, Fee, ID)
+type Transaction = (SwapTransaction, Fee, PlayerID)
 
 -------------------------
 -- 2. Auxiliary functions
@@ -40,7 +41,7 @@ inRange :: Double -> Double -> Bool
 inRange _ _ = True
 
 -- Swap a given amount of tokens
-swapWithAmount :: Transaction -> ContractState -> (Result, ContractState, Fee, ID)
+swapWithAmount :: Transaction -> ContractState -> (Result, ContractState, Fee, PlayerID)
 swapWithAmount ((Swap0 amt), fee, id) st@(reserve0, reserve1) =
     if inRange amt reserve0
       then
@@ -61,7 +62,7 @@ swapWithAmount ((Swap1 amt), fee, id) st@(reserve0, reserve1) =
 -- Thread through a sequence of transactions
 -- NOTE: We assume that the first element in the list is the first transaction to be run.
 -- NOTE: The latest element in the outcomes list is the latest state.
-lsSwapsWithAmounts :: ([Transaction], ContractState) -> [(Result,ContractState, Fee, ID)]
+lsSwapsWithAmounts :: ([Transaction], ContractState) -> [(Result,ContractState, Fee, PlayerID)]
 lsSwapsWithAmounts ([], _)                = []
 lsSeapsWithAmounts ((x:xs), state) =
   let (result1,stateNew, fee, id) = swapWithAmount x state
@@ -73,10 +74,10 @@ actionSpaceCoordinator (lsTransaction, _ ) = permutations lsTransaction
 
 -- Compute payoff for coordinator
 -- NOTE We assume here that only the first transaction has to pay a fee
-computePayoffCoordinator :: [(Result,ContractState, Fee, ID)] -> Fee
+computePayoffCoordinator :: [(Result,ContractState, Fee, PlayerID)] -> (Fee, (PlayerID,Fee))
 computePayoffCoordinator ls =
   let (_,_,fee,_) = head ls
-      in fee
+      in (fee,(playerID, -fee))
 -- player optimizes the order of choosing what to thread through or not.
 
 -- probably good assumption that the player can inject a set of own txs
@@ -130,8 +131,12 @@ payoffs = [opengame|
 
   inputs : lsOutput ;
   operation : forwardFunction $ computePayoffCoordinator ;
-  outputs : payoffCoordinator ;
+  outputs : payoffCoordinator, payoffs ; -- TODO
 
+  inputs : payoffCoordinator, id ;
+  operation : addRolePayoffs ;
+  outputs : ;
+  
   :------:
   outputs : payoffCoordinator ;
   returns : ;
