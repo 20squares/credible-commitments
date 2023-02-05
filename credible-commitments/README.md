@@ -393,8 +393,7 @@ conditionalCooperateTransfer (action,transfer) =
      else Defect
 ```
 
-We verified that:
-- **Bob**'s best strategy is to transfer exactly `n`, the minimum acceptable amount for **Alice**, up until
+We verified that **Bob**'s best strategy is to transfer exactly `n`, the minimum acceptable amount for **Alice**, up until
 
 $$ \pi_2 (\mathtt{Cooperate},\mathtt{Cooperate}) - n \leq \pi_2(\mathtt{Defect},\mathtt{Defect})$$
 
