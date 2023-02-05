@@ -26,12 +26,18 @@
     - [Sanity checks](#sanity-checks)
 # Summary
 
-TBD
-
+In this FRP we focused on modelling some of the thoughts experiments around prisoner's dilemma with credible commitments as detailed in [Xin's research](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p).
 
 ## Analytics results
 
-TBD
+We verified that everything that was supposed to be an equilibrium is indeed an equilibrium:
+
+- In the original prisoner's dilemma, the equilbrium is `(Defect, Defect)`;
+- In the prisoner's dilemma with commitment device, the equilibrium is `(Cooperate, Cooperate)`;
+- In the prisoner's dilemma where commitment is used as an extortion device, the equilibrium is again `(Cooperate, Cooperate)`, but the payoffs are obviousl skewed against the extorted player. As we expected, the equilibrium breaks when the extorted value makes the extorted player's payoff lower than the one it would have been by playing `Defect`.
+- Finally, in the prisoner's dilemma with a coordinator, we verified that the equilibrium for both players is trying to outbid each other to win the right to commit (frontrunning).
+
+Essentially, everythhing worked as expected, and we can say with certainty that the game-theoretic research we modelled is formally sound.
 
 
 # Installation
@@ -109,7 +115,7 @@ these errors hint at missing GCC libraries, which will have to be installed inde
 Here we give a more detailed explanation of what our model does.
 
 ## Recap: credible commitments
-Our model is based on Xin's research on [Credible commitments](). The model comprises a bunch of different games, each one being expanded into the next one:
+Our model is based on Xin's research on [Credible commitments](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). The model comprises a bunch of different games, each one being expanded into the next one:
 1. First of all, we implemented a very basic [prisoner's dilemma](https://en.wikipedia.org/wiki/Prisoner%27s_dilemma): There are two players, **Alice** and **Bob**, each one having to choose between `Cooperate` and `Defect`. Their choices get submitted to a payoff matrix structured so that the pair `(Defect, Defect)` is the only possible [Nash equilibrium](https://en.wikipedia.org/wiki/Nash_equilibrium). This is a straightforward implementation of a very famous game, and we won't dwell further on it.
 2. The next game is prisoner's dilemma with a *committment device*: Essentially, this is a version of prisoner's dilemma where **Alice**'s strategic choice is replaced by an [exhogenous](#exhogenous-parameters) function, which we call `commitment`. The idea is simple: **Alice**'s strategy now consists in supplying a commitment which announces beforehand how she intends to respond to **Bob**'s choice. In the case we are most interested in, **Alice**'s strategy consists in supplying a function which will result in `Cooperate` if **Bob**'s choice is `Cooperate`, and `Defect` if **Bob**'s choice is **Defect**. We expect that in this scenarios the Nash equilibrium shifts towards **Bob** playing `Cooperate`.
 3. The two games above are composed together into a [branching game](#branching): Now **Alice** can first choose if she wants to play vanilla prisoner's dilemma or prisoner's dilemma with commitment. Both **Alice** and **Bob** need to supply strategies for each of the two possible [branchings](#branching-1). We expect that the Nash equilibrium strategies for both players are to play the version with the commitment device.
@@ -120,7 +126,7 @@ These simple games model quite well the stages through which one goes from vanil
 
 
 ## Assumptions made explicit
-TBD
+The games we modelled can be tought as mental experiments more than real word situations, exactly as for the original prisoner's dilemma. As such, and also thanks to the high quality of the original research we started from, we were able to implement them 'as is', without having to make anything more explicit than it already was.
 
 # Code deep dive
 
@@ -300,6 +306,8 @@ In this game the best strategy is clearly (A,A1). Nevertheless, we need to suppl
 
 The model is composed of several files:
 
+TBD as we will most likely reorg things around.
+
 
 # Analytics
 
@@ -348,6 +356,7 @@ Observable State:
 ## Strategies employed in the analysis
 TBD
 
+
 ## Running the analytics
 
 As already stressed in [Evaluating strategies](#evaluating-strategies), there are two main ways to run strategies. In the [Normal execution](#normal-execution) mode, one just needs to give the command `stack run`. This command will execute a pre-defined battery of strategies using the parameters predefined in the source code. These parameters can be varied as one pleses. Once this is done and the edits are saved, `stack run` will automatically recompile the code and run the simulation with the new parameter set.
@@ -360,6 +369,33 @@ functionName parameters
 
 In particular, calling the function `main` in interactive mode will result in the same behavior of calling `stack run` in normal mode. Again, editing the source code and then hitting `:r` will trigger recompilation on the fly.
 
+## Results
+
+The summary of our results can be found right at the top of this document, at the subsection [analytics results](#analytics-results). There wasn't much more than this to say, basically the equilibrium of every game was the one Xin already calculated.
 
 ### Sanity checks
-TBD
+
+As for sanity checks, we played with the payoff parameters to verify that, indeed, the equilibrium of the modelled games breaks when it is supposed to. For instance, having defined the payoff matrix as follows:
+
+```haskell
+prisonersDilemmaMatrix Cooperate Cooperate   = (2,2)
+prisonersDilemmaMatrix Cooperate Defect  = (0,3)
+prisonersDilemmaMatrix Defect Cooperate  = (3,0)
+prisonersDilemmaMatrix Defect Defect = (1,1)
+```
+
+and given the following commitment device, employed in the prisoner's dilemma with extortion model (see [Explaining the model](#explaining-the-model) for details):
+
+```haskell
+conditionalCooperateTransfer (action,transfer) =
+  if action == Cooperate && transfer >= n
+     then Cooperate
+     else Defect
+```
+
+We verified that:
+- **Bob**'s best strategy is to transfer exactly `n`, the minimum acceptable amount for **Alice**, up until
+$$ \pi_2 (\mathtt{Cooperate},\mathtt{Cooperate}) - n \leq \pi_2(\mathtt{Defect},\mathtt{Defect})$$
+where $\pi_2$ is the projection on the second component. That is, **Bob**'s incentive to cooperate in a context of extortion vanishes if the extorted value results in a total payoff that is *less* than what he would get by defecting.
+
+This sort of sanity checks can be performed by editing the values in the payoff matrix and `n` (hardcoded to be $1$ in the source code) as one pleases. Recompiling and runnning the analytics (see [Installation](#installation) and [Running the analytics](#running-the-analytics) for details) will result in equilibrium breaking around pivotal values, as one would expect.
