@@ -37,7 +37,7 @@ We verified that everything that was supposed to be an equilibrium is indeed an 
 - In the prisoner's dilemma where commitment is used as an extortion device, the equilibrium is again `(Cooperate, Cooperate)`, but the payoffs are obviousl skewed against the extorted player. As we expected, the equilibrium breaks when the extorted value makes the extorted player's payoff lower than the one it would have been by playing `Defect`.
 - Finally, in the prisoner's dilemma with a coordinator, we verified that the equilibrium for both players is trying to outbid each other to win the right to commit (frontrunning).
 
-Essentially, everythhing worked as expected, and we can say with certainty that the game-theoretic research we modelled is formally sound.
+Essentially, everything worked as expected, and we can say with certainty that the game-theoretic research we were tasked to model is formally sound.
 
 
 # Installation
