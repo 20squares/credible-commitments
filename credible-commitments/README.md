@@ -395,7 +395,9 @@ conditionalCooperateTransfer (action,transfer) =
 
 We verified that:
 - **Bob**'s best strategy is to transfer exactly `n`, the minimum acceptable amount for **Alice**, up until
+
 $$ \pi_2 (\mathtt{Cooperate},\mathtt{Cooperate}) - n \leq \pi_2(\mathtt{Defect},\mathtt{Defect})$$
+
 where $\pi_2$ is the projection on the second component. That is, **Bob**'s incentive to cooperate in a context of extortion vanishes if the extorted value results in a total payoff that is *less* than what he would get by defecting.
 
 This sort of sanity checks can be performed by editing the values in the payoff matrix and `n` (hardcoded to be $1$ in the source code) as one pleases. Recompiling and runnning the analytics (see [Installation](#installation) and [Running the analytics](#running-the-analytics) for details) will result in equilibrium breaking around pivotal values, as one would expect.
