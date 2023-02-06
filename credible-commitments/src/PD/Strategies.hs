@@ -4,7 +4,7 @@ module PD.Strategies where
 
 import OpenGames.Engine.Engine
 import PD.PD
-import Coordinator
+import PD.Coordinator
 
 
 -------------

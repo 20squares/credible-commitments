@@ -9,7 +9,7 @@ module PD.Coordinator where
 
 import OpenGames.Engine.Engine
 import OpenGames.Preprocessor
-import PD
+import PD.PD
 
 --------------
 -- 0. Overview
