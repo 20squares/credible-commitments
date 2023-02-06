@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
-module PD where
+module PD.PD where
 
 
 import OpenGames.Engine.Engine

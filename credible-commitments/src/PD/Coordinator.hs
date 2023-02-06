@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
-module Coordinator where
+module PD.Coordinator where
 
 
 import OpenGames.Engine.Engine
