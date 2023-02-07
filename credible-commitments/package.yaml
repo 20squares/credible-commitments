@@ -53,7 +53,7 @@ executables:
 tests:
   credible-commitments-test:
     main:                Spec.hs
-    source-dirs:         test
+    source-dirs:         src/test
     ghc-options:
     - -threaded
     - -rtsopts
