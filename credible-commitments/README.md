@@ -7,11 +7,16 @@
     - [Addendum: Installing haskell](#addendum-installing-haskell)
 - [Explaining the model](#explaining-the-model)
     - [Recap: credible commitments](#recap-credible-commitments)
+    - [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma)
+    - [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device)
+    - [Prisoner's dilemma with branching](#prisoners-dilemma-with-branching)
+    - [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion)
+    - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator)
     - [Assumptions made explicit](#assumptions-made-explicit)
 - [Code deep dive](#code-deep-dive)
     - [Recap: DSL primer](#recap-dsl-primer)
         - [The building blocks](#the-building-blocks)
-        - [Exhogenous parameters](#exhogenous-parameters)
+        - [exogenous parameters](#exogenous-parameters)
         - [Basic operations](#basic-operations)
         - [Branching](#branching)
         - [Supplying strategies](#supplying-strategies)
@@ -26,16 +31,17 @@
     - [Sanity checks](#sanity-checks)
 # Summary
 
-In this FRP we focused on modelling some of the thoughts experiments around prisoner's dilemma with credible commitments as detailed in [Xin's research](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p).
+In this FRP we focused on modelling some of the thoughts experiments around prisoner's dilemma with credible commitments as detailed in [Xin's research](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). We then generalized these experiments to a more tangible case involving frontrunning and swaps in a *automatic market maker (AMM)*.
 
 ## Analytics results
 
 We verified that everything that was supposed to be an equilibrium is indeed an equilibrium:
 
-- In the original prisoner's dilemma, the equilbrium is `(Defect, Defect)`;
-- In the prisoner's dilemma with commitment device, the equilibrium is `(Cooperate, Cooperate)`;
-- In the prisoner's dilemma where commitment is used as an extortion device, the equilibrium is again `(Cooperate, Cooperate)`, but the payoffs are obviousl skewed against the extorted player. As we expected, the equilibrium breaks when the extorted value makes the extorted player's payoff lower than the one it would have been by playing `Defect`.
-- Finally, in the prisoner's dilemma with a coordinator, we verified that the equilibrium for both players is trying to outbid each other to win the right to commit (frontrunning).
+- In [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma), the equilbrium is `(Defect, Defect)`;
+- In [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device), the equilibrium is `(Cooperate, Cooperate)`;
+- In [Prisoner's dilemma with branching](#prisoners-dilemma-with-branching), the equilibrium is choosing to play the commitment device version, and then `(Cooperate, Cooperate)`;
+- In [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion), the equilibrium is again `(Cooperate, Cooperate)`, but the payoffs are obviousl skewed against the extorted player. As we expected, the equilibrium breaks when the extorted value makes the extorted player's payoff lower than the one it would have been by playing `Defect`.
+- In [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator), we verified that the equilibrium for both players consists in trying to outbid each other to win the right to commit (frontrunning).
 
 Essentially, everything worked as expected, and we can say with certainty that the game-theoretic research we were tasked to model is formally sound.
 
@@ -116,17 +122,52 @@ Here we give a more detailed explanation of what our model does.
 
 ## Recap: credible commitments
 Our model is based on Xin's research on [Credible commitments](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). The model comprises a bunch of different games, each one being expanded into the next one:
-1. First of all, we implemented a very basic [prisoner's dilemma](https://en.wikipedia.org/wiki/Prisoner%27s_dilemma): There are two players, **Alice** and **Bob**, each one having to choose between `Cooperate` and `Defect`. Their choices get submitted to a payoff matrix structured so that the pair `(Defect, Defect)` is the only possible [Nash equilibrium](https://en.wikipedia.org/wiki/Nash_equilibrium). This is a straightforward implementation of a very famous game, and we won't dwell further on it.
-2. The next game is prisoner's dilemma with a *committment device*: Essentially, this is a version of prisoner's dilemma where **Alice**'s strategic choice is replaced by an [exhogenous](#exhogenous-parameters) function, which we call `commitment`. The idea is simple: **Alice**'s strategy now consists in supplying a commitment which announces beforehand how she intends to respond to **Bob**'s choice. In the case we are most interested in, **Alice**'s strategy consists in supplying a function which will result in `Cooperate` if **Bob**'s choice is `Cooperate`, and `Defect` if **Bob**'s choice is **Defect**. We expect that in this scenarios the Nash equilibrium shifts towards **Bob** playing `Cooperate`.
-3. The two games above are composed together into a [branching game](#branching): Now **Alice** can first choose if she wants to play vanilla prisoner's dilemma or prisoner's dilemma with commitment. Both **Alice** and **Bob** need to supply strategies for each of the two possible [branchings](#branching-1). We expect that the Nash equilibrium strategies for both players are to play the version with the commitment device.
-4. Afterwards, we generalize the situation further into a prisoner dilemma where the commitment device is turned into an *extortion device*. The game works as usual prisoner's dilemma with commitment, with the difference that now **Alice**, in order to play **Cooperate** which would result into a better outcome for **Bob**, also requires the payment of a bribe. Here, we expect that the Nash equilibrium consists in **Bob** paying the bribe up to some value, beyond which choosing to play `Defect` results into a profitable deviation.
-5. Finally, we implement a game of prisoner's dilemma with a **Coordinator**. This game is a version of the game in the previous point, with the difference that the roles of **Alice** and **Bob** are not anymore fixed in advance. There is a third player, called **Coordinator**, that decides which player between **Alice** and **Bob** gets to use the commitment device. Both players can pay **Coordinator** a bribe in order to get picked for this task. Coordinator just wants to maximize the amount of money it receives. As being able to set the commitment device results in a strategic advantage (the player committing gets the power to extort money from the other one), we expect that the best strategy for both **Alice** and **Bob** consists in trying to outbid each other (frontrunning).
 
-These simple games model quite well the stages through which one goes from vanilla non-cooperative games to full flagged MEV: The presence of a commitment device is first casted into a positive light, as it makes Nash equilibrium and Paretian optimum coincide. Afterwards, we explore how the commitment device can be re-casted into an exploitative device. Finally, in the last game, we see how in the presennce of **Coordinator** familiar MEV strategies such as *frontrunning* arise naturally. So, paradoxically we are back to square one, as the game is yet again non-cooperative.
 
+### Vanilla prisoner's dilemma
+
+First of all, we implemented a very basic [prisoner's dilemma](https://en.wikipedia.org/wiki/Prisoner%27s_dilemma): There are two players, **Alice** and **Bob**, each one having to choose between `Cooperate` and `Defect`. Their choices get submitted to a payoff matrix structured so that the pair `(Defect, Defect)` is the only possible [Nash equilibrium](https://en.wikipedia.org/wiki/Nash_equilibrium). This is a straightforward implementation of a very famous game, and we won't dwell further on it.
+
+
+### Prisoner's dilemma with a commitment device
+
+The next game is prisoner's dilemma with a *committment device*: Essentially, this is a version of prisoner's dilemma where **Alice**'s strategic choice is replaced by an [exogenous](#exogenous-parameters) function, which we call `commitment`. The idea is simple: **Alice**'s strategy now consists in supplying a commitment which announces beforehand how she intends to respond to **Bob**'s choice. In the case we are most interested in, **Alice**'s strategy consists in supplying a function which will result in `Cooperate` if **Bob**'s choice is `Cooperate`, and `Defect` if **Bob**'s choice is **Defect**. We expect that in this scenarios the Nash equilibrium shifts towards **Bob** playing `Cooperate`.
+
+
+### Prisoner's dilemma with branching
+
+We then merged [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma) and [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device) into a [branching game](#branching): Here, **Alice** can first choose if she wants to play vanilla prisoner's dilemma or prisoner's dilemma with commitment. Both **Alice** and **Bob** need to supply strategies for each of the two possible [branchings](#branching-1). We expect that the Nash equilibrium strategies are to play the version with the commitment device, and then cooperate.
+
+
+### Prisoner's dilemma with extortion
+
+Afterwards, we generalized the situation further into a game where the commitment device is turned into an *extortion device*. The game works as usual prisoner's dilemma with commitment, with the difference that now **Alice**, in order to play **Cooperate** which would result into a better outcome for **Bob**, also requires the payment of a bribe. So **Bob** must now choose between cooperating and being extorted, or defecting.
+Here, we expect that the Nash equilibrium consists in **Bob** paying the bribe up to some value, beyond which choosing to play `Defect` results into a profitable deviation.
+
+
+### Prisoner's dilemma with a coordinator
+
+To conclude our iterations over prisoner's dilemma, we implemented a version with **Coordinator**. This game is like in the previous point, with the difference that the roles of **Alice** and **Bob** are not anymore fixed in advance. There is a third player, called **Coordinator**, that decides which player between **Alice** and **Bob** gets to use the commitment device. Both players can pay **Coordinator** a bribe in order to get picked for this task. Coordinator just wants to maximize the amount of money it receives. As being able to set the commitment device results in a strategic advantage (the player committing gets the power to extort money from the other one), we expect that the best strategy for both **Alice** and **Bob** consists in trying to outbid each other (frontrunning).
+
+These simple games model quite well the stages through which one goes from vanilla non-cooperative games to full flagged MEV: The presence of a commitment device first results in a more positive outcome, as it makes Nash equilibrium and Paretian optimum coincide. Afterwards, the commitment device can be weaponized into an exploitative device. Finally, in the last game, we see how in the presennce of **Coordinator** familiar MEV strategies such as *frontrunning* arise naturally. So, paradoxically we are back to square one, as the game turns yet again into a non-cooperative one.
+
+
+## Scaling to AMMs
+
+As a next step, we wanted to implement the previous considerations into a more 'real-life' model. Moreover, we wanted to explore first-hand notions of *price of anarchy*, which can be loosely defined as 'the price premium paid for the lack of organization'.
+
+To model this, we imagined the following situation: There is an automatic market maker and **Alice** and **Bob** want to use it to swap funds. Moreover, **Coordinator** receives the transactions from both player and can reorder them at will. We came up with two different scenarios:
+- In the first one, **Alice** and **Bob** want to swap in the same direction (say, token1 for token2). In this setup the player that gets in the block first benefits the most, as the next transaction will be impacted by the price slippage caused by the first. As usual, **Coordinator** just wants to maximize its payoff, and the game is in essence very similar to [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator): Both **Alice** and **Bob** have an interest in frontrunning each other.
+- In the second scenario, we set **Coordinator**'s payoff to simply be the sum of **Alice** and **Bob**'s payoffs, with any fee ignored. So in this case **Coordinator** is completely 'selfless' and benefits the most when the players benefit the most. We give both **Alice** and **Bob** a *list* of possibly *contrasting* transactions: **Alice** wants to perform a bunch of swaps from token1 to token2 or vice-versa, and so does **Bob**. By default, we make all the transactions from token1 to token2, from both players, come in first. The result is a huge slippage. We verify that the equilibrium strategy for **Coordinator** is just rearranging transactions in a 'sandwitched' way, to counter slippage as much as possible. In this case does not make any sense to pay a fee since this would decrease **Alice** and **Bob**'s payoffs, and then **Coordinator**'s payoff too by definition.
+
+    This latter scenario exemplifies well the idea of *price of anarchy*: Leaving the transaction order as they are results in a much poorer outcome for all players if this is compared with the outcome resulting from the optimal ordering. This difference is what we indeed call 'price of anarchy'.
 
 ## Assumptions made explicit
-The games we modelled can be tought as mental experiments more than real word situations, exactly as for the original prisoner's dilemma. As such, and also thanks to the high quality of the original research we started from, we were able to implement them 'as is', without having to make anything more explicit than it already was.
+Regarding the variations over prisoner's dilemma, thanks to the high quality of the original research we started from, we were able to implement things 'as is', without having to make anything more explicit than it already was.
+
+For the AMM case, we had to be a bit more careful: In particular, we assumed that the fee a player pays to **Coordinator** is taken irrespective of the outcome of the transaction: That is, even if the transaction reverts, the fee is paid anyway. As usual, we model **Alice** and **Bob** as rational, just willing to maximize their payoff. To take slippage into account, we passed a 'real' `exchangeRate` as an [exogenous parameter](#exogenous-parameters): This represents the 'real world' conversion rate between the couple of tokens we consider. In the beginning, the AMM is initialized so that the tokens in the pool reflect this rate. As things progress, the rate given in the AMM *slips* from the real world one.
+
+
 
 # Code deep dive
 
@@ -198,11 +239,11 @@ gameName variables = [opengame|
 
 In turn, `Subgame1` and `Subgame2` can be other games defined using the same DSL. Notice that the wire `x` is internal and totally hidden from the 'outside world'. 
 
-### Exhogenous parameters
+### exogenous parameters
 
-An exogenous parameter is a given assumption that is not part of the model, and is fed to it externally. As such, it is treated by the model as a 'fact' that cannot really be modified. An example of exhogenous parameter could be the market conditions at the time when a game is played.
+An exogenous parameter is a given assumption that is not part of the model, and is fed to it externally. As such, it is treated by the model as a 'fact' that cannot really be modified. An example of exogenous parameter could be the market conditions at the time when a game is played.
 
-Exhogenous parameters are just defined as variables, as the field `variables` in the previous code blocks testifes. These variables can in turn be fed as exhogenous parameters to inside games, as in the following example:
+exogenous parameters are just defined as variables, as the field `variables` in the previous code blocks testifes. These variables can in turn be fed as exogenous parameters to inside games, as in the following example:
 
 ```haskell
 gameName stock1Price stock2Price  = [opengame|
