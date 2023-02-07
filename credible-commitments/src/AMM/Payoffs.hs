@@ -24,16 +24,16 @@ computePayoffCoordinator mapResults =
 -- Compute Utility Map for all players in denomination of the first currency
 computePayoffPlayerMap
   :: Ord k =>
-     Double
+     ContractState
      -> (M.Map k (Double, Double), M.Map k (SwapTransaction, b1),
          M.Map k (Result, b2, c))
      -> M.Map k Double
-computePayoffPlayerMap exchangeRate2To1 (mapEndowments, mapTransactions ,mapResults) =
-  let updatePayoffSinglePlayer k = updateBalance exchangeRate2To1 (mapTransactions M.! k) (mapResults M.! k)
+computePayoffPlayerMap contractState (mapEndowments, mapTransactions ,mapResults) =
+  let updatePayoffSinglePlayer k = updateBalance contractState (mapTransactions M.! k) (mapResults M.! k)
       in M.mapWithKey updatePayoffSinglePlayer mapEndowments
 
 -- Update individual balance and evaluate in terms of first currency
-updateBalance exchangeRate2To1 (swapTransaction,_) (result,_,_) (curr0,curr1) =
+updateBalance contractState (swapTransaction,_) (result,_,_) (curr0,curr1) =
   let newBalance =
         case swapTransaction of
           Swap0 sent0 ->
@@ -44,9 +44,9 @@ updateBalance exchangeRate2To1 (swapTransaction,_) (result,_,_) (curr0,curr1) =
             case result of
               Swap0Out received0 -> (curr0 + received0, curr1 - sent1)
               Swap1Out received1 -> (curr0, curr1 - sent1 + received1)  -- ^ case should not happen
-        in  denominateInFirstCurrency exchangeRate2To1 newBalance
+        in  denominateInFirstCurrency contractState newBalance
   where
-    denominateInFirstCurrency exchangeRate2To1 (x1,x2) = x1 + x2*exchangeRate2To1
+    denominateInFirstCurrency contractState (x1,x2) = x1 + x2 * (snd contractState / fst contractState)
 
 -- Project out payoffs for two players
 projectPlayerPayoff :: Ord k => k -> M.Map k a -> a

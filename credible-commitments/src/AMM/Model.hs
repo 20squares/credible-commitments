@@ -17,6 +17,30 @@ Provides the complete open game
 -}
 
 
+completeGame
+  :: ContractState
+     -> String
+     -> String
+     -> Fee
+     -> OpenGame
+          StochasticStatefulOptic
+          StochasticStatefulContext
+          '[Kleisli Stochastic ContractState SwapTransaction,
+            Kleisli Stochastic (ContractState, SwapTransaction) Fee,
+            Kleisli Stochastic ContractState SwapTransaction,
+            Kleisli Stochastic (ContractState, SwapTransaction) Fee,
+            Kleisli
+              Stochastic (MapTransactions, ContractState) MapTransactions]
+          '[[DiagnosticInfoBayesian ContractState SwapTransaction],
+            [DiagnosticInfoBayesian (ContractState, SwapTransaction) Fee],
+            [DiagnosticInfoBayesian ContractState SwapTransaction],
+            [DiagnosticInfoBayesian (ContractState, SwapTransaction) Fee],
+            [DiagnosticInfoBayesian
+               (MapTransactions, ContractState) MapTransactions]]
+          (Data.Map.Internal.Map String (Double, Double), ContractState)
+          ()
+          ()
+          ()
 completeGame exchangeRate name1 name2 upperBound = [opengame|
   inputs: mapEndowments, state ;
   feedback: ;

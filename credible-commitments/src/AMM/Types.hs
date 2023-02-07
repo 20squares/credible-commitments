@@ -38,7 +38,10 @@ type MapPlayerEndowment = M.Map PlayerID (Double,Double)
 
 type MapPlayerUtility = M.Map PlayerID Utility
 
-player1 = "Player 1"
-
-player2 = "Player 2"
-
+data Parameters = Parameters
+  { exchangeRate :: ContractState
+  , name1        :: Agent
+  , name2        :: Agent
+  , upperBound   :: Double
+  , mapEndowments :: MapPlayerEndowment
+  } deriving (Show)
