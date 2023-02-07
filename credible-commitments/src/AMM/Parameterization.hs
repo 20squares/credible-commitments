@@ -4,18 +4,28 @@
 module AMM.Parameterization where
 
 import AMM.Types
+import AMM.Strategies
 import qualified Data.Map.Strict as M
 
 {-
-Instantiates the basic functionality
+Instantiates the parameters used in the game 
 -}
 
--------------------------
+-------------
 -- Parameters
+-------------
 
-initialExchangeBalance :: ContractState
-initialExchangeBalance = (100,100)
+player1 = "player1"
+player2 = "player2"
 
--- TODO Check this; or do we want to include the slippage? 
-initialExchangeRate2To1 = snd initialExchangeBalance / fst initialExchangeBalance
+testEndowments = M.fromList [(player1,(50,50)),(player2,(50,50))]
 
+
+testParameters = Parameters
+  (100,100)
+  player1
+  player2
+  50
+  testEndowments
+
+testStrategies = strategyTupleMaxFee (Swap0 20) (Swap0 20) 10 10
