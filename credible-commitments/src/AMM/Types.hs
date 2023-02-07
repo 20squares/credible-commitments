@@ -18,6 +18,8 @@ type Utility = Double
 
 type Fee = Double
 
+type CoordinatorPayoff = Double
+
 type ContractState = (Double, Double)
 
 type PlayerID = String
@@ -43,5 +45,6 @@ data Parameters = Parameters
   , name1        :: Agent
   , name2        :: Agent
   , upperBound   :: Double
+  , goalFunctionCoordinator :: (MapTransactionResults, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
   , mapEndowments :: MapPlayerEndowment
-  } deriving (Show)
+  } 

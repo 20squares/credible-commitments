@@ -13,13 +13,24 @@ Defines payoffs for players
 -- Payoffs
 ----------
 
--- Compute payoff for coordinator (fee) and fee payment by relevant player
+-- Compute payoff for coordinator by maximizing the fee
+-- Compute fee payment by relevant player
 -- NOTE We assume here that only the first transaction has to pay a fee
-computePayoffCoordinator :: MapTransactionResults -> (Fee, (PlayerID,Fee))
-computePayoffCoordinator mapResults =
+computePayoffCoordinatorMaxFee :: (MapTransactionResults, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
+computePayoffCoordinatorMaxFee (mapResults,_) =
   let ls = M.toList mapResults
       (playerID, (_,_,fee)) = head ls
       in (fee,(playerID, -fee))
+
+-- Compute payoff for coordinator by maximizing utility of players
+-- Compute fee payment by relevant player
+-- NOTE We assume here that only the first transaction has to pay a fee
+computePayoffCoordinatorMaxPlayerUtility :: (MapTransactionResults, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
+computePayoffCoordinatorMaxPlayerUtility (mapResults,mapUtility) =
+  let ls = M.toList mapResults
+      (playerID, (_,_,fee)) = head ls
+      sumUtility = M.foldr (+) 0 mapUtility
+      in (sumUtility, (playerID, -fee))
 
 -- Compute Utility Map for all players in denomination of the first currency
 computePayoffPlayerMap

@@ -82,14 +82,19 @@ amm  = [opengame|
 |]
 
 -- Payoffs for coordinator
-payoffsCoordinator = [opengame|
-  inputs: mapOutput ;
+payoffsCoordinator exchangeRate goalFunction = [opengame|
+  inputs:  mapEndowments, mapTransactions,mapResults ;
   feedback: ;
 
   :------:
 
-  inputs : mapOutput ;
-  operation : forwardFunction $ computePayoffCoordinator ;
+  inputs : mapEndowments, mapTransactions, mapResults ;
+  operation : forwardFunction $ computePayoffPlayerMap exchangeRate;
+  outputs : utilityMap ;
+  // Repeat component here for localizing the information
+
+  inputs : mapResults, utilityMap ;
+  operation : forwardFunction $ goalFunction ;
   outputs : payoffCoordinator, payoffPlayer ;
 
   inputs :  payoffPlayer ;
@@ -195,7 +200,7 @@ payoffPlayers exchangeRate name1 name2 = [opengame|
   operation : payoffSinglePlayer name2 ;
 
   :------:
-  outputs :  ;
+  outputs : ;
   returns : ;
 |]
 

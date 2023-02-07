@@ -3,8 +3,9 @@
 
 module AMM.Parameterization where
 
-import AMM.Types
+import AMM.Payoffs
 import AMM.Strategies
+import AMM.Types
 import qualified Data.Map.Strict as M
 
 {-
@@ -26,6 +27,7 @@ testParameters = Parameters
   player1
   player2
   50
+  computePayoffCoordinatorMaxPlayerUtility
   testEndowments
 
-testStrategies = strategyTupleMaxFee (Swap0 20) (Swap0 20) 10 10
+testStrategies = strategyTupleMaxFee (Swap0 20) (Swap0 20) 0 0
