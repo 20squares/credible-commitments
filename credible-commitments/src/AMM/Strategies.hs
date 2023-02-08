@@ -36,7 +36,10 @@ strategyFee
           Fee
 strategyFee fee = pureAction fee
 
+-----------------------
 -- Strategy coordinator
+
+-- Maximize fee received by players
 maxFeeStrategy
   :: Kleisli
        Stochastic
