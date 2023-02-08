@@ -348,7 +348,7 @@ In this game the best strategy is clearly (A,A1). Nevertheless, we need to suppl
 
 The model is composed of several files, all stored in the `main` branch:
 
-- The `app` folder contains `Main.hs`, where the `main` function is defined. This is the function executed when one gives `stack run` (cf. [Running the analytics](#running-the-analytics))
+- The `app` folder contains `Main.hs`, where the `main` function is defined. This is the function executed when one gives `stack run` (cf. [Running the analytics](#running-the-analytics)).
 - The `pics` folder exists only for the purpose of this documentation file.
 - The `test` folders contain some basic Haskell testing code. Here 'test' has to be intended in the traditional development sense, that is, these are tests to check that the code works properly, and aren not about model analytics.
 
@@ -372,7 +372,7 @@ The other folder we provide is `AMM`. Here the file structure is the following:
     actionSpaceFee upperBound  = [0..upperBound]
     ```
 
-means that the `coinbase.transfer()` fee that **Bob** and **Alice** choose to pay to **Coordinator** bust be positive and below an `upperBound`, which is fed through the model as an [exogenous parameter](#exogenous-parameters).
+    means that the `coinbase.transfer()` fee that **Bob** and **Alice** choose to pay to **Coordinator** bust be positive and below an `upperBound`, which is fed through the model as an [exogenous parameter](#exogenous-parameters).
 - `AMM.hs` defines a very basic Automated Market Maker.
 - `Components.hs` defines **Coordinator** and lifts the AMM into a game. In general, here are defined all the subgames we compose into the model.
 - `Model.hs` contains the model proper, where all the components are tied together.
