@@ -49,9 +49,10 @@ maxFeeStrategy = Kleisli
     chooseMaximalFee lsOfMaps =
       fst $ maximumBy (comparing snd) [(x, snd . snd . head . M.toList $ x)| x <- lsOfMaps]
 
+-- Composing strategy tuple
 strategyTupleMaxFee swap1 swap2 fee1 fee2  = 
   strategySwap swap1        -- Player 1 swap tx
-  ::- strategyFee fee1     -- Player 1 coinbase.transfer
+  ::- strategyFee fee1      -- Player 1 coinbase.transfer
   ::- strategySwap swap2    -- Player 2 swap tx
   ::- strategyFee fee2      -- Player 2 coinbase.transfer
   ::- maxFeeStrategy        -- Coordinator strategy
