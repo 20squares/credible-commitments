@@ -80,3 +80,12 @@ strategyTupleMaxFee swap1 swap2 fee1 fee2  =
   ::- strategyFee fee2      -- Player 2 coinbase.transfer
   ::- maxFeeStrategy        -- Coordinator strategy
   ::- Nil
+
+-- Composing strategy tuple
+strategyTupleMaxUtility swap1 swap2 fee1 fee2 endowmentMap = 
+  strategySwap swap1                   -- Player 1 swap tx
+  ::- strategyFee fee1                 -- Player 1 coinbase.transfer
+  ::- strategySwap swap2               -- Player 2 swap tx
+  ::- strategyFee fee2                 -- Player 2 coinbase.transfer
+  ::- maxUtilityStrategy endowmentMap  -- Coordinator strategy
+  ::- Nil

@@ -5,8 +5,13 @@ import AMM.Parameterization
 
 main :: IO ()
 main = do
-  putStrLn "Run parameterized analytics for AMM game"
-  mainAMM
+  putStrLn "Run parameterized analytics for AMM game - greedy"
+  mainAMMGreedy
+  putStrLn "Run parameterized analytics for AMM game - max utility"
+  mainAMMMaxUtility
 
 
-mainAMM = printEquilibriumCompleteGame testStrategiesGreedy testParametersGreedy
+
+mainAMMGreedy = printEquilibriumCompleteGame testStrategiesGreedy testParametersGreedy
+
+mainAMMMaxUtility = printEquilibriumCompleteGame testStrategiesMaxUtility testParametersMaxUtility

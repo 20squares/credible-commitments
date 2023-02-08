@@ -26,7 +26,10 @@ player2 = "player2"
 
 testEndowments = M.fromList [(player1,(50,50)),(player2,(50,50))]
 
-testStrategiesGreedy = strategyTupleMaxFee (Swap0 50) (Swap0 40) 0 0.5
+testStrategiesGreedy = strategyTupleMaxFee (Swap0 50) (Swap0 40) 2 1
+
+testStrategiesMaxUtility = strategyTupleMaxUtility (Swap0 50) (Swap0 40) 0 0 testEndowments
+
 
 testParametersGreedy = Parameters
   (100,100)                                 -- Initial AMM exchange rate
@@ -39,7 +42,7 @@ testParametersGreedy = Parameters
   testEndowments                            -- Initial player endowments
 
 
-testParametersSocial = Parameters
+testParametersMaxUtility = Parameters
   (100,100)                                 -- Initial AMM exchange rate
   player1                                   -- Alice
   player2                                   -- Bob
