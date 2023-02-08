@@ -68,6 +68,8 @@ test-suite credible-commitments-test
   main-is: Spec.hs
   other-modules:
       AMMSpec
+      PayoffsSpec
+      TestParameters
       Paths_credible_commitments
   hs-source-dirs:
       src/test
@@ -76,5 +78,6 @@ test-suite credible-commitments-test
       base >=4.7 && <5
     , containers
     , credible-commitments
+    , hspec
     , open-games-hs
   default-language: Haskell2010

@@ -44,17 +44,23 @@ computePayoffPlayerMap contractState (mapEndowments, mapTransactions ,mapResults
       in M.mapWithKey updatePayoffSinglePlayer mapEndowments
 
 -- Update individual balance and evaluate in terms of first currency
-updateBalance contractState (swapTransaction,_) (result,_,_) (curr0,curr1) =
+updateBalance
+  :: (Double, Double)
+     -> (SwapTransaction, b1)
+     -> (Result, b2, c)
+     -> (Double, Double)
+     -> Double
+updateBalance contractState (swapTransaction,_) (result,_,_) (endowment0,endowment1) =
   let newBalance =
         case swapTransaction of
           Swap0 sent0 ->
             case result of
-              Swap0Out received0 -> (curr0 - sent0 + received0, curr1) -- ^ case should not happen
-              Swap1Out received1 -> (curr0 - sent0, curr1 + received1)
+              Swap0Out received0 -> (endowment0 - sent0 + received0, endowment1) -- ^ case should not happen
+              Swap1Out received1 -> (endowment0 - sent0, endowment1 + received1)
           Swap1 sent1 ->
             case result of
-              Swap0Out received0 -> (curr0 + received0, curr1 - sent1)
-              Swap1Out received1 -> (curr0, curr1 - sent1 + received1)  -- ^ case should not happen
+              Swap0Out received0 -> (endowment0 + received0, endowment1 - sent1)
+              Swap1Out received1 -> (endowment0, endowment1 - sent1 + received1)  -- ^ case should not happen
         in  denominateInFirstCurrency contractState newBalance
   where
     denominateInFirstCurrency contractState (x1,x2) = x1 + x2 * (snd contractState / fst contractState)

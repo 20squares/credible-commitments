@@ -12,9 +12,9 @@ Provides basic functionality for an AMM
 
 -------------------------
 -- 1. Auxiliary functions
-
+-- TODO Check out the inrange condition
 inRange :: Double -> Double -> Bool
-inRange _ _ = True
+inRange x _ = x > 0 -- ^ avoid negative or zero transfers
 
 -- Swap a given amount of tokens
 swapWithAmount :: Transaction -> ContractState -> TransactionResult

@@ -18,6 +18,8 @@ type Utility = Double
 
 type Fee = Double
 
+type Endowment = (Double, Double)
+
 type CoordinatorPayoff = Double
 
 type ContractState = (Double, Double)
