@@ -118,6 +118,7 @@ Afterwards, `ghcup` may ask you to install some additional packages before conti
 `ghcup` is a very convenient solution in that it installs only in one folder (on Linux systems, `/home/$USER/.ghcup`). Should you decide to get rid of `haskell` altogether, just delete the folder.
 
 **A note of warning:** GHC, the `haskell` compiler installed with `ghcup`, relies heavily on the GCC compiler. GHC assumes that GCC comes together with all the relevant libraries. As such, in compiling the model you may get errors such as:
+
 ```sh
 /usr/bin/ld.gold: error: cannot find -ltinfo
 ```
@@ -366,7 +367,7 @@ The code proper is contained in the `src` folder, organized in two subfolders. `
 - `Strategies.hs` defines the strategies for all games in this folder. See [Supplying strategies](#supplying-strategies) for details.
 - `Analytics.hs` contains the definition of equilibrium for all the prisoner's dilemma iterations. Commented, are some of the analytics one can run. These are automatically run by the `main` function when calling `stack run` in [Normal execution](#normal-execution) mode. Alternatively, one can call these functions directly while in [Interactive execution](#interactive-execution) mode, as in, for instance,
 
-    ```
+    ```haskell
     isEquilibriumPrisonersDilemma strategyTupleDefect
     ```
 
@@ -376,7 +377,7 @@ The other folder we provide is `AMM`. Here the file structure is the following:
 - `Strategies.hs` and `Analytics.hs` are as in the `PD` case.
 - `ActionSpaces.hs` defines the bounds within which a player choice can exist. For instance, 
 
-    ```
+    ```haskell
     actionSpaceFee upperBound  = [0..upperBound]
     ```
 
