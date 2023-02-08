@@ -2,22 +2,48 @@ module StrategiesSpec where
 
 import OpenGames.Engine.Engine
 
+import AMM.ActionSpaces
 import AMM.Strategies
 import AMM.Types
 import TestParameters
 
 import Control.Arrow
+import Data.List (maximumBy)
+import qualified Data.HashMap.Strict as M
+import Data.Ord (comparing)
 import Numeric.Probability.Distribution (decons)
 import Test.Hspec
   
 
 spec :: Spec
 spec = do
+  actionSpaceTest
   coordinatorStrat
+
+-- Test inner component
+chooseMaximalFee :: [MapTransactions] -> MapTransactions
+chooseMaximalFee lsOfMaps =
+  fst $ maximumBy (comparing snd) [(x, snd . head . M.toList $ x)| x <- lsOfMaps]
+
+actionSpaceTest = describe 
+   "coordinator actionSpace" $ do
+     it "does  correctly construct action space" $ do
+       shouldBe
+         (actionSpaceCoordinator (mapTransactions1,contractState1))
+         [mapTransactions1]
+
 
 coordinatorStrat = describe
    "coordinator strategy" $ do
-     it "does react correctly wrt fees" $ do
+     it "does react correctly wrt fees - 1" $ do
        shouldBe
          (decons $ runKleisli maxFeeStrategy $ (mapTransactions1,contractState1))
+         [(mapTransactions1, 1.0)]
+     it "does react correctly wrt fees - 2" $ do
+       shouldBe
+         (decons $ runKleisli maxFeeStrategy $ (mapTransactions3,contractState1))
+         [(mapTransactions1, 1.0)]
+     it "does react correctly wrt fees - 3" $ do
+       shouldBe
+         (decons $ runKleisli maxFeeStrategy $ (mapTransactions4,contractState1))
          [(mapTransactions1, 1.0)]

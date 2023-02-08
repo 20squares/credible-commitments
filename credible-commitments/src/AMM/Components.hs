@@ -12,7 +12,6 @@ import AMM.Payoffs
 import AMM.Types
 import OpenGames.Engine.Engine
 import OpenGames.Preprocessor
-import Data.List (permutations)
 
 {-
 Provides  the open game components

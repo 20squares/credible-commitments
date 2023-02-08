@@ -2,7 +2,7 @@ module TestParameters where
 
 import AMM.Types
 
-import qualified Data.Map.Strict as M
+import qualified Data.HashMap.Strict as M
 -------------
 -- Parameters
 
@@ -21,14 +21,17 @@ endowment1 = (100,100)
 mapEndowments1 = M.fromList [(player1,contractState1),(player2,contractState1)]
 
 -- Transaction data
-transaction0,transaction1,transaction2 :: Transaction
+transaction0,transaction1,transaction2,transaction3,transaction4 :: Transaction
 transaction0 = ((Swap0 100),10)
 transaction1 = ((Swap1 100), 10)
 transaction2 = ((Swap1 25), 10)
-
+transaction3 = ((Swap1 25), 5)
+transaction4 = ((Swap1 25), 4)
 
 mapTransactions1 = M.fromList [(player1,transaction1),(player2,transaction1)]
 mapTransactions2 = M.fromList [(player1,transaction2),(player2,transaction2)]
+mapTransactions3 = M.fromList [(player1,transaction3),(player2,transaction4)]
+mapTransactions4 = M.fromList [(player1,transaction4),(player2,transaction3)]
 
 -- Outcome data
 transactionOutcome0, transactionOutcome1,transactionOutcome2, transactionOutcome3, transactionOutcome4, transactionOutcome5, transactionOutcome6, transactionOutcome7 :: TransactionResult

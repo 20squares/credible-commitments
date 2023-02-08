@@ -4,7 +4,7 @@ import AMM.AMM
 import AMM.Types
 import TestParameters
 
-import qualified Data.Map.Strict as M
+import qualified Data.HashMap.Strict as M
 import Test.Hspec
 
 spec :: Spec

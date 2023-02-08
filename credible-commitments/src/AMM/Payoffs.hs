@@ -3,7 +3,7 @@ module AMM.Payoffs where
 
 import OpenGames.Engine.Engine
 import AMM.Types
-import qualified Data.Map.Strict as M
+import qualified Dhall.Map as M
 
 {-
 Defines payoffs for players
@@ -33,23 +33,11 @@ computePayoffCoordinatorMaxPlayerUtility (mapResults,mapUtility) =
       in (sumUtility, (playerID, -fee))
 
 -- Compute Utility Map for all players in denomination of the first currency
-computePayoffPlayerMap
-  :: Ord k =>
-     ContractState
-     -> (M.Map k (Double, Double), M.Map k (SwapTransaction, b1),
-         M.Map k (Result, b2, c))
-     -> M.Map k Double
 computePayoffPlayerMap contractState (mapEndowments, mapTransactions ,mapResults) =
   let updatePayoffSinglePlayer k = updateBalance contractState (mapTransactions M.! k) (mapResults M.! k)
       in M.mapWithKey updatePayoffSinglePlayer mapEndowments
 
 -- Update individual balance and evaluate in terms of first currency
-updateBalance
-  :: (Double, Double)
-     -> (SwapTransaction, b1)
-     -> (Result, b2, c)
-     -> (Double, Double)
-     -> Double
 updateBalance contractState (swapTransaction,_) (result,_,_) (endowment0,endowment1) =
   let newBalance =
         case swapTransaction of
@@ -66,6 +54,5 @@ updateBalance contractState (swapTransaction,_) (result,_,_) (endowment0,endowme
     denominateInFirstCurrency contractState (x1,x2) = x1 + x2 * (snd contractState / fst contractState)
 
 -- Project out payoffs for two players
-projectPlayerPayoff :: Ord k => k -> M.Map k a -> a
 projectPlayerPayoff name utilityMap =
  utilityMap M.! name 

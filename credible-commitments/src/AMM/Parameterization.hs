@@ -6,7 +6,7 @@ module AMM.Parameterization where
 import AMM.Payoffs
 import AMM.Strategies
 import AMM.Types
-import qualified Data.Map.Strict as M
+import qualified Data.HashMap.Strict as M
 
 {-
 Instantiates the parameters used in the game 
