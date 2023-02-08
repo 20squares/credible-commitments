@@ -14,9 +14,6 @@ Defines the available actions for players
 -- Action spaces
 ----------------
 
--- Define action space for choosing a tx
-actionSpaceTXs = [Swap0 50, Swap1 100]
-
 -- Define actions space for fee
 actionSpaceFee upperBound  = [0..upperBound]
 

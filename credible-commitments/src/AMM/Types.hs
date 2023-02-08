@@ -47,6 +47,8 @@ data Parameters = Parameters
   , name1        :: Agent
   , name2        :: Agent
   , upperBound   :: Double
+  , actionSpaceTXs1 :: [SwapTransaction]
+  , actionSpaceTXs2 :: [SwapTransaction]
   , goalFunctionCoordinator :: (MapTransactionResults, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
   , mapEndowments :: MapPlayerEndowment
   } 

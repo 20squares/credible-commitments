@@ -109,7 +109,7 @@ payoffsCoordinator exchangeRate goalFunction = [opengame|
 
 
 -- Single player chooses which transaction to send to coordinator and with what fee
-chooseTransactionAndFee name upperBound =
+chooseTransactionAndFee name upperBound actionSpaceTXs =
   [opengame|
   inputs: state ;
   feedback: ;
@@ -137,7 +137,7 @@ chooseTransactionAndFee name upperBound =
 |]
 
 -- Two players choose their transactions and fee
-players name1 name2 upperBound =
+players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2 =
   [opengame|
   inputs: state ;
   feedback: ;
@@ -145,11 +145,11 @@ players name1 name2 upperBound =
   :------:
 
   inputs :  state ;
-  operation : chooseTransactionAndFee name1 upperBound ;
+  operation : chooseTransactionAndFee name1 upperBound actionSpaceTXs1 ;
   outputs : txWithFee1;
 
   inputs :  state ;
-  operation : chooseTransactionAndFee name2 upperBound ;
+  operation : chooseTransactionAndFee name2 upperBound actionSpaceTXs2 ;
   outputs : txWithFee2;
 
   inputs : txWithFee1, txWithFee2 ;

@@ -4,4 +4,9 @@ import AMM.Analytics
 import AMM.Parameterization
 
 main :: IO ()
-main = printEquilibriumCompleteGame testStrategies testParameters
+main = do
+  putStrLn "Run parameterized analytics for AMM game"
+  mainAMM
+
+
+mainAMM = printEquilibriumCompleteGame testStrategiesGreedy testParametersGreedy
