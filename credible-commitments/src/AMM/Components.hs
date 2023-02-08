@@ -34,6 +34,61 @@ TODO
 -------------
 
 -- NOTE: We assume for now that the builder is not including own transactions
+
+-- Single player chooses which transaction to send to coordinator and with what fee
+chooseTransactionAndFee name upperBound actionSpaceTXs =
+  [opengame|
+  inputs: state ;
+  feedback: ;
+
+  :------:
+
+  inputs :  state ;
+  operation : dependentDecision name $ const $ actionSpaceTXs ;
+  outputs : tx;
+  returns : 0 ;
+
+  inputs : state, tx ;
+  operation : dependentDecision name $ const $ actionSpaceFee upperBound ;
+  outputs : fee;
+  returns : 0 ;
+
+  inputs : tx,fee ;
+  operation : forwardFunction $ uncurry combineTXAndFee ; 
+  outputs : txWithFee ;
+
+  :------:
+  outputs : txWithFee ;
+  returns : ;
+
+|]
+
+-- Two players choose their transactions and fee
+players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2 =
+  [opengame|
+  inputs: state ;
+  feedback: ;
+
+  :------:
+
+  inputs :  state ;
+  operation : chooseTransactionAndFee name1 upperBound actionSpaceTXs1 ;
+  outputs : txWithFee1;
+
+  inputs :  state ;
+  operation : chooseTransactionAndFee name2 upperBound actionSpaceTXs2 ;
+  outputs : txWithFee2;
+
+  inputs : txWithFee1, txWithFee2 ;
+  operation : forwardFunction $  combineTXIntoList name1 name2; 
+  outputs : transactionsSubmitted ;
+
+  :------:
+  outputs : transactionsSubmitted ;
+  returns : ;
+
+|]
+
 coordinator
   :: OpenGame
        StochasticStatefulOptic
@@ -107,59 +162,7 @@ payoffsCoordinator exchangeRate goalFunction = [opengame|
 |]
 
 
--- Single player chooses which transaction to send to coordinator and with what fee
-chooseTransactionAndFee name upperBound actionSpaceTXs =
-  [opengame|
-  inputs: state ;
-  feedback: ;
 
-  :------:
-
-  inputs :  state ;
-  operation : dependentDecision name $ const $ actionSpaceTXs ;
-  outputs : tx;
-  returns : 0 ;
-
-  inputs : state, tx ;
-  operation : dependentDecision name $ const $ actionSpaceFee upperBound ;
-  outputs : fee;
-  returns : 0 ;
-
-  inputs : tx,fee ;
-  operation : forwardFunction $ uncurry combineTXAndFee ; 
-  outputs : txWithFee ;
-
-  :------:
-  outputs : txWithFee ;
-  returns : ;
-
-|]
-
--- Two players choose their transactions and fee
-players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2 =
-  [opengame|
-  inputs: state ;
-  feedback: ;
-
-  :------:
-
-  inputs :  state ;
-  operation : chooseTransactionAndFee name1 upperBound actionSpaceTXs1 ;
-  outputs : txWithFee1;
-
-  inputs :  state ;
-  operation : chooseTransactionAndFee name2 upperBound actionSpaceTXs2 ;
-  outputs : txWithFee2;
-
-  inputs : txWithFee1, txWithFee2 ;
-  operation : forwardFunction $  combineTXIntoList name1 name2; 
-  outputs : transactionsSubmitted ;
-
-  :------:
-  outputs : transactionsSubmitted ;
-  returns : ;
-
-|]
 
 -- Payoffs for a single player
 payoffSinglePlayer name = [opengame|

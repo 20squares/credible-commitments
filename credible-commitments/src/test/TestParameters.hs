@@ -35,6 +35,9 @@ mapTransactions2 = M.fromList [(player1,transaction2),(player2,transaction2)]
 mapTransactions3 = M.fromList [(player1,transaction3),(player2,transaction4)]
 mapTransactions4 = M.fromList [(player1,transaction4),(player2,transaction3)]
 mapTransactions4' = M.fromList [(player2,transaction3),(player1,transaction4)]
+
+mapTransactionsFromParameterization = M.fromList [("player1",(Swap0 50.0,0.0)),("player2",(Swap0 40.0,0.5))]
+mapTransactionsFromParameterization' = M.fromList [("player2",(Swap0 40.0,0.5)), ("player1",(Swap0 50.0,0.0))]
 -- Outcome data
 transactionOutcome0, transactionOutcome1,transactionOutcome2, transactionOutcome3, transactionOutcome4, transactionOutcome5, transactionOutcome6, transactionOutcome7 :: TransactionResult
 transactionOutcome0 = (Swap1Out 49, (200,51),10)

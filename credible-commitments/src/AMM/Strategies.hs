@@ -47,8 +47,4 @@ maxFeeStrategy = Kleisli
  where
     chooseMaximalFee :: [MapTransactions] -> MapTransactions
     chooseMaximalFee lsOfMaps =
-      fst $ maximumBy (comparing snd) [(x, snd . head . M.toList $ x)| x <- lsOfMaps]
-
-
--- Complete tuple
-strategyTupleMaxFee swap1 swap2 fee1 fee2  = strategySwap swap1 ::-  strategyFee fee1 ::- strategySwap swap2 ::- strategyFee fee2 ::- maxFeeStrategy ::- Nil
+      fst $ maximumBy (comparing snd) [(x, snd . snd . head . M.toList $ x)| x <- lsOfMaps]

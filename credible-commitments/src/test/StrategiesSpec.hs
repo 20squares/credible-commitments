@@ -27,10 +27,16 @@ chooseMaximalFee lsOfMaps =
 
 actionSpaceTest = describe 
    "coordinator actionSpace" $ do
-     it "does  correctly construct action space" $ do
+     it "does  correctly construct action space - 1" $ do
        shouldBe
          (actionSpaceCoordinator (mapTransactions1,contractState1))
          [mapTransactions1,mapTransactions1']
+     it "does  correctly construct action space - 2" $ do
+       shouldBe
+         (actionSpaceCoordinator (mapTransactionsFromParameterization,contractState1))
+         [mapTransactionsFromParameterization,mapTransactionsFromParameterization']
+
+
 
 
 coordinatorStrat = describe
@@ -46,4 +52,8 @@ coordinatorStrat = describe
      it "does react correctly wrt fees - 3" $ do
        shouldBe
          (decons $ runKleisli maxFeeStrategy $ (mapTransactions4,contractState1))
+         [(mapTransactions4', 1.0)]
+     it "does react correctly wrt fees - 4" $ do
+       shouldBe
+         (decons $ runKleisli maxFeeStrategy $ (mapTransactionsFromParameterization,contractState1))
          [(mapTransactions4', 1.0)]

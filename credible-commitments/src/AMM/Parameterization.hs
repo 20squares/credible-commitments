@@ -26,7 +26,7 @@ player2 = "player2"
 
 testEndowments = M.fromList [(player1,(50,50)),(player2,(50,50))]
 
-testStrategiesGreedy = strategyTupleMaxFee (Swap0 50) (Swap0 40) 1 2
+testStrategiesGreedy = strategyTupleMaxFee (Swap0 50) (Swap0 40) 0 0.5
 
 testParametersGreedy = Parameters
   (100,100)
