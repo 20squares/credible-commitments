@@ -7,7 +7,7 @@ import AMM.ActionSpaces
 import AMM.AMM
 import AMM.Types
 import Data.List (maximumBy)
-import qualified Data.HashMap.Strict as M
+import qualified Dhall.Map as M
 import Data.Ord (comparing)
 
 {-

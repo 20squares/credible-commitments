@@ -9,7 +9,7 @@ import TestParameters
 
 import Control.Arrow
 import Data.List (maximumBy)
-import qualified Data.HashMap.Strict as M
+import qualified Dhall.Map as M
 import Data.Ord (comparing)
 import Numeric.Probability.Distribution (decons)
 import Test.Hspec
@@ -30,7 +30,7 @@ actionSpaceTest = describe
      it "does  correctly construct action space" $ do
        shouldBe
          (actionSpaceCoordinator (mapTransactions1,contractState1))
-         [mapTransactions1]
+         [mapTransactions1,mapTransactions1']
 
 
 coordinatorStrat = describe
@@ -38,12 +38,12 @@ coordinatorStrat = describe
      it "does react correctly wrt fees - 1" $ do
        shouldBe
          (decons $ runKleisli maxFeeStrategy $ (mapTransactions1,contractState1))
-         [(mapTransactions1, 1.0)]
+         [(mapTransactions1', 1.0)]
      it "does react correctly wrt fees - 2" $ do
        shouldBe
          (decons $ runKleisli maxFeeStrategy $ (mapTransactions3,contractState1))
-         [(mapTransactions1, 1.0)]
+         [(mapTransactions3, 1.0)]
      it "does react correctly wrt fees - 3" $ do
        shouldBe
          (decons $ runKleisli maxFeeStrategy $ (mapTransactions4,contractState1))
-         [(mapTransactions1, 1.0)]
+         [(mapTransactions4', 1.0)]

@@ -29,13 +29,16 @@ computePayoffCoordinatorMaxPlayerUtility :: (MapTransactionResults, MapPlayerUti
 computePayoffCoordinatorMaxPlayerUtility (mapResults,mapUtility) =
   let ls = M.toList mapResults
       (playerID, (_,_,fee)) = head ls
-      sumUtility = M.foldr (+) 0 mapUtility
+      sumUtility = foldr (+) 0 $ fmap snd $ M.toList mapUtility
       in (sumUtility, (playerID, -fee))
 
 -- Compute Utility Map for all players in denomination of the first currency
 computePayoffPlayerMap contractState (mapEndowments, mapTransactions ,mapResults) =
-  let updatePayoffSinglePlayer k = updateBalance contractState (mapTransactions M.! k) (mapResults M.! k)
-      in M.mapWithKey updatePayoffSinglePlayer mapEndowments
+  let updatePayoffSinglePlayer k =
+        let Just findTX = M.lookup k mapTransactions
+            Just findResults = M.lookup k mapResults
+            in updateBalance contractState findTX findResults
+                in M.mapWithKey updatePayoffSinglePlayer mapEndowments
 
 -- Update individual balance and evaluate in terms of first currency
 updateBalance contractState (swapTransaction,_) (result,_,_) (endowment0,endowment1) =
@@ -55,4 +58,5 @@ updateBalance contractState (swapTransaction,_) (result,_,_) (endowment0,endowme
 
 -- Project out payoffs for two players
 projectPlayerPayoff name utilityMap =
- utilityMap M.! name 
+  let Just findUtility = M.lookup name utilityMap
+      in findUtility

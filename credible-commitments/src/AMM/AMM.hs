@@ -4,7 +4,7 @@
 module AMM.AMM where
 
 import AMM.Types
-import qualified Data.HashMap.Strict as M
+import qualified Dhall.Map as M
 
 {-
 Provides basic functionality for an AMM

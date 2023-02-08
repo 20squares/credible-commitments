@@ -2,7 +2,7 @@ module AMM.Types where
 
 import OpenGames.Engine.Engine
 import OpenGames.Preprocessor
-import qualified Data.HashMap.Strict as M
+import qualified Dhall.Map as M
 
 {-
 Types
@@ -35,12 +35,12 @@ data Result = Swap0Out {g :: Double} | Swap1Out {g' :: Double}
 type Transaction = (SwapTransaction, Fee)
 type TransactionResult =  (Result, ContractState, Fee)
 
-type MapTransactions = M.HashMap PlayerID Transaction
-type MapTransactionResults = M.HashMap PlayerID TransactionResult
+type MapTransactions = M.Map PlayerID Transaction
+type MapTransactionResults = M.Map PlayerID TransactionResult
 
-type MapPlayerEndowment = M.HashMap PlayerID (Double,Double)
+type MapPlayerEndowment = M.Map PlayerID (Double,Double)
 
-type MapPlayerUtility = M.HashMap PlayerID Utility
+type MapPlayerUtility = M.Map PlayerID Utility
 
 data Parameters = Parameters
   { exchangeRate :: ContractState
