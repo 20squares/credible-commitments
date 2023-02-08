@@ -13,6 +13,7 @@
     - [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion)
     - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator)
     - [Assumptions made explicit](#assumptions-made-explicit)
+    - [The AMM game](#the-amm-game)
 - [Code deep dive](#code-deep-dive)
     - [Recap: DSL primer](#recap-dsl-primer)
         - [The building blocks](#the-building-blocks)
@@ -27,6 +28,13 @@
     - [File structure](#file-structure)
 - [Analytics](#analytics)
     - [Reading the analytics](#reading-the-analytics)
+    - [Strategies emplyed in the analysis](#strategies-employed-in-the-analysis)
+        - [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma-1)
+        - [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device-1)
+        - [Prisoner's dilemma with branching](#prisoners-dilemma-with-branching-1)
+        - [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion-1)
+        - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator-1)
+        - [The AMM game](#the-amm-game-1)
     - [Running the analytics](#running-the-analytics)
     - [Sanity checks](#sanity-checks)
 # Summary
@@ -142,7 +150,7 @@ We then merged [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma) and [Pri
 ### Prisoner's dilemma with extortion
 
 Afterwards, we generalized the situation further into a game where the commitment device is turned into an *extortion device*. The game works as usual prisoner's dilemma with commitment, with the difference that now **Alice**, in order to play **Cooperate** which would result into a better outcome for **Bob**, also requires the payment of a bribe. So **Bob** must now choose between cooperating and being extorted, or defecting.
-Here, we expect that the Nash equilibrium consists in **Bob** paying the bribe up to some value, beyond which choosing to play `Defect` results into a profitable deviation.
+As before, we combine the extortion game with a traditional prisoner's dilemma game using branching. Here, we expect that the Nash equilibrium consists in **Alice** choosing to use the extortion device, and **Bob** paying the bribe up to some value, beyond which choosing to play `Defect` results into a profitable deviation.
 
 
 ### Prisoner's dilemma with a coordinator
@@ -152,7 +160,7 @@ To conclude our iterations over prisoner's dilemma, we implemented a version wit
 These simple games model quite well the stages through which one goes from vanilla non-cooperative games to full flagged MEV: The presence of a commitment device first results in a more positive outcome, as it makes Nash equilibrium and Paretian optimum coincide. Afterwards, the commitment device can be weaponized into an exploitative device. Finally, in the last game, we see how in the presennce of **Coordinator** familiar MEV strategies such as *frontrunning* arise naturally. So, paradoxically we are back to square one, as the game turns yet again into a non-cooperative one.
 
 
-## Scaling to AMMs
+## The AMM game
 
 As a next step, we wanted to implement the previous considerations into a more 'real-life' model. Moreover, we wanted to explore first-hand notions of *price of anarchy*, which can be loosely defined as 'the price premium paid for the lack of organization'.
 
@@ -426,8 +434,206 @@ Observable State:
 
 
 ## Strategies employed in the analysis
-TBD
 
+Here we report about the strategies we used in our tests. As one can see, since many of the prisoner's dilemma games we defined default to previously defined variations in some circumstances, we were able to make some strategic definitions only once and re-use them in more complicated models.
+
+All the prisoner's dilemma strategies are defined in `PD/Strategies.hs`. All the AMM game strategies are defined in `AMM/Strategies.hs`. Please refer to [File structure](#file-structure) for more information.
+
+### Vanilla prisoner's dilemma
+
+As for prisoner's dilemma, the strategies we employed are the following. For [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma),
+
+```haskell
+cooperateStrategy :: Kleisli Stochastic () ActionPD
+cooperateStrategy = pureAction Cooperate
+-- ^ play _Cooperate_ with certainty
+defectStrategy :: Kleisli Stochastic () ActionPD
+defectStrategy = pureAction Defect
+-- ^ play _Defect_ with certainty
+
+-- | Combine single player's strategies into a tuple
+strategyTupleCooperate = cooperateStrategy ::- cooperateStrategy ::- Nil
+-- ^ Both players cooperate with certainty
+strategyTupleDefect = defectStrategy ::- defectStrategy ::- Nil
+-- ^ Both players defect with certainty
+```
+
+
+### Prisoner's dilemma with a commitment device
+
+For [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device), the commitment device itself is fed as a strategic choice. We choose to fed the function:
+
+```haskell
+-- 2. Commitment
+-- Commitment strategy
+conditionalCooperate action =
+  if action == Cooperate
+     then Cooperate
+     else Defect
+```
+
+This is the same function used in Xin's research report.
+
+
+### Prisoner's dilemma with branching
+
+In [Prisoner's dilemma with branching](#prisoners-dilemma-with-branching), we define two more strategies for **Alice**. One is around choosing or not choosing to use the commitment device. The other one is the strategy **Alice** needs to choose in case she decides to play vanilla prisoner's dilemma.
+
+```haskell
+-- Alice chooses to commit
+aliceStrategyCommit :: Kleisli Stochastic () (Either () ())
+aliceStrategyCommit = pureAction commitmentChoice
+
+-- Alice chooses not to commit - branch into PD
+aliceStrategyPD = pureAction pdChoice
+```
+
+All the strategies for all the subgames are aggregated as follows:
+
+```haskell
+-- 4. Full strategy profiles
+-- Aggregating into full strategy
+strategyTupleCommit =
+  aliceStrategyCommit    -- ^ which game does Alice choose?
+  ::- cooperateStrategy  -- ^ if in the commitment game which action does Bob choose?
+  ::- defectStrategy     -- ^ if in the pd game which action does Alice choose?
+  ::- defectStrategy     -- ^ if in the pd game which action does Bob choose?
+  ::- Nil
+
+```
+
+### Prisoner's dilemma with extortion
+
+In [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion), we redefine the strategic choice of commitment device to be extortive. We furthermore endow **Bob** with strategies around cooperation/defection and extorted payment. As usual we combine everything into a strategy for the whole game.
+
+```haskell
+-- Commitment strategy with transfer
+conditionalCooperateTransfer (action,transfer) =
+  if action == Cooperate && transfer >= 1
+     then Cooperate
+     else Defect
+
+-- Bob strategy
+bobStrategyCooperate = cooperateStrategy ::- Nil
+
+-- Bob transfer strategy
+transferStrategy :: Kleisli Stochastic ActionPD Double
+transferStrategy =
+  Kleisli $
+    (\case
+       Cooperate -> (playDeterministically 1)
+       Defect    -> (playDeterministically 0)
+    )
+
+
+-- Aggregating into full strategy for commitment + transfer
+strategyTupleCommitTransfer =
+  aliceStrategyCommit     -- ^ which game does Alice choose?
+  ::- cooperateStrategy   -- ^ if in the commitment game which action does Bob choose?
+  ::- transferStrategy -- ^ if in the commitment game which transfer does Bob choose?
+  ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
+  ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
+  ::- Nil
+```
+
+### Prisoner's dilemma with a coordinator
+
+In [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator), we need to define bidding strategies for both players. Moreover we need to define a criterion for **Coordinator** to pick the winning bid. Here **Coordinator** just chooses the bid that maximizes its profit.
+
+```haskell
+-- 3. Coordinator game
+-- 3.1 Bidding
+
+-- NOTE: simplified assumption regarding bidding
+biddingStrategy :: Kleisli Stochastic () Double
+biddingStrategy = pureAction 2
+
+biddingStrategyZero :: Kleisli Stochastic () Double
+biddingStrategyZero = pureAction 0
+
+
+
+-- Strategy for the first player to commit
+-- NOTE we are feeding the information for first player and second player name identifiers forward
+firstPlayerStrategyCommit :: Kleisli Stochastic (Agent1,Agent2) (Either (Agent1,Agent2) ())
+firstPlayerStrategyCommit =
+  Kleisli 
+   (\agents -> playDeterministically $ Left agents)
+
+-- Fix strategy for coordinator to choose
+-- NOTE we default to player B in case of a tie for simplicity
+choosePlayerToCommit :: Kleisli Stochastic ((Agent,Bid),(Agent,Bid)) Agent1
+choosePlayerToCommit =
+  Kleisli
+    (\((agentA,bidA),(agentB,bidB)) ->
+    if bidA > bidB
+        then playDeterministically agentA
+        else if bidA < bidB
+                then playDeterministically agentB
+                else uniformDist [agentA,agentB]
+    )
+
+
+-- Aggregating into full strategy for commitment + transfer with coordinator
+strategyTupleCoordinator =
+  biddingStrategy               -- ^ bidding strategy of player A
+  ::- biddingStrategy           -- ^ bidding strategy of player B
+  ::- choosePlayerToCommit      -- ^ coordinator choose the player who can commit
+  ::- firstPlayerStrategyCommit -- ^ which game does player A or B choose?
+  ::- cooperateStrategy         -- ^ if in the commitment game which action does A choose?
+  ::- transferStrategy       -- ^ if in the commitment game which transfer does B choose?
+  ::- defectStrategy            -- ^ if in the pd game which action does A choose?
+  ::- defectStrategy            -- ^ if in the pd game which action does B choose?
+  ::- Nil
+```
+
+
+### The AMM game
+
+In [The AMM game](#the-amm-game), we define the following strategies, defining the basic type of swap transaction, the fee to be paid to **Coordinator**, and finally **Coordinator** strategy. 
+
+
+```haskell
+-- Strategy swap
+strategySwap
+  :: SwapTransaction
+     -> Kleisli
+          Stochastic
+          ContractState
+          SwapTransaction
+strategySwap swap = pureAction swap
+
+-- Strategy fee
+strategyFee
+  :: Fee
+     -> Kleisli
+          Stochastic
+          (ContractState, SwapTransaction)
+          Fee
+strategyFee fee = pureAction fee
+
+-- Strategy coordinator
+maxFeeStrategy
+  :: Kleisli
+       Stochastic
+          (MapTransactions, ContractState)
+          MapTransactions
+maxFeeStrategy = Kleisli
+ (\observation -> playDeterministically $ chooseMaximalFee $ actionSpaceCoordinator observation)
+ where
+    chooseMaximalFee :: [MapTransactions] -> MapTransactions
+    chooseMaximalFee lsOfMaps =
+      fst $ maximumBy (comparing snd) [(x, snd . head . M.toList $ x)| x <- lsOfMaps]
+
+-- Complete tuple
+strategyTupleMaxFee swap1 swap2 fee1 fee2  = 
+  strategySwap swap1        -- Player 1 swap tx
+  ::-  strategyFee fee1     -- Player 1 coinbase.transfer
+  ::- strategySwap swap2    -- Player 2 swap tx
+  ::- strategyFee fee2      -- Player 2 coinbase.transfer
+  ::- maxFeeStrategy        -- Coordinator strategy
+  ::- Nil
+```
 
 ## Running the analytics
 
