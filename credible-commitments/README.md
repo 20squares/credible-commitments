@@ -167,6 +167,7 @@ Regarding the variations over prisoner's dilemma, thanks to the high quality of 
 
 For the AMM case, we had to be a bit more careful: In particular, we assumed that the fee a player pays to **Coordinator** is taken irrespective of the outcome of the transaction: That is, even if the transaction reverts, the fee is paid anyway. As usual, we model **Alice** and **Bob** as rational, just willing to maximize their payoff. To take slippage into account, we passed a 'real' `exchangeRate` as an [exogenous parameter](#exogenous-parameters): This represents the 'real world' conversion rate between the couple of tokens we consider. In the beginning, the AMM is initialized so that the tokens in the pool reflect this rate. As things progress, the rate given in the AMM *slips* from the real world one.
 
+Ad for the AMM architecture itself, we resorted to a very simple [constant function AMM](https://en.wikipedia.org/wiki/Constant_function_market_maker).
 
 
 # Code deep dive
@@ -345,9 +346,39 @@ In this game the best strategy is clearly (A,A1). Nevertheless, we need to suppl
 
 ## File structure
 
-The model is composed of several files:
+The model is composed of several files, all stored in the `main` branch:
 
-TBD as we will most likely reorg things around.
+- The `app` folder contains `Main.hs`, where the `main` function is defined. This is the function executed when one gives `stack run` (cf. [Running the analytics](#running-the-analytics))
+- The `pics` folder exists only for the purpose of this documentation file.
+- The `test` folders contain some basic Haskell testing code. Here 'test' has to be intended in the traditional development sense, that is, these are tests to check that the code works properly, and aren not about model analytics.
+
+The code proper is contained in the `src` folder, organized in two subfolders. `PD` contains our iterations around prisoner's dilemma:
+- `PD.hs` defines the various games we use, from [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma) to [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion).
+- `Coordinator.hs` contains the material needed to model [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator). We placed this iteration into a separate file to aid clarity, as it is substantially denser than the other ones.
+- `Strategies.hs` defines the strategies for all games in this folder. See [Supplying strategies](#supplying-strategies) for details.
+- `Analytics.hs` contains the definition of equilibrium for all the prisoner's dilemma iterations. Commented, are some of the analytics one can run. These are automatically run by the `main` function when calling `stack run` in [Normal execution](#normal-execution) mode. Alternatively, one can call these functions directly while in [Interactive execution](#interactive-execution) mode, as in, for instance,
+
+    ```
+    isEquilibriumPrisonersDilemma strategyTupleDefect
+    ```
+
+    Please refer to [Running the analytics](#running-the-analytics) for more information.
+
+The other folder we provide is `AMM`. Here the file structure is the following:
+- `Strategies.hs` and `Analytics.hs` are as in the `PD` case.
+- `ActionSpaces.hs` defines the bounds within which a player choice can exist. For instance, 
+
+    ```
+    actionSpaceFee upperBound  = [0..upperBound]
+    ```
+
+means that the `coinbase.transfer()` fee that **Bob** and **Alice** choose to pay to **Coordinator** bust be positive and below an `upperBound`, which is fed through the model as an [exogenous parameter](#exogenous-parameters).
+- `AMM.hs` defines a very basic Automated Market Maker.
+- `Components.hs` defines **Coordinator** and lifts the AMM into a game. In general, here are defined all the subgames we compose into the model.
+- `Model.hs` contains the model proper, where all the components are tied together.
+- `Parametrization.hs` contains all the hardcoded exhogenous parameters to be fed to the model, such as AMM initial state, players' names, initial players' endowments etc.
+- `Payoffs.hs` defines the payoff functions, both for players and **Coordinator**.
+-  `Types.hs` defines the types of many of the things we use in our model, such as AMM state, payoff types etc.
 
 
 # Analytics
