@@ -2,6 +2,7 @@ module AMM.Types where
 
 import OpenGames.Engine.Engine
 import OpenGames.Preprocessor
+
 import qualified Data.Map.Strict as M
 
 {-
@@ -36,17 +37,24 @@ type Transaction = (SwapTransaction, Fee)
 type TransactionResult =  (Result, ContractState, Fee)
 
 type MapTransactions = M.Map PlayerID Transaction
+type TransactionsLS =  [(PlayerID,Transaction)]
+
 type MapTransactionResults = M.Map PlayerID TransactionResult
+type TransactionResultsLS = [(PlayerID,TransactionResult)]
 
 type MapPlayerEndowment = M.Map PlayerID (Double,Double)
+type EndowmentLS = [(PlayerID,Endowment)]
 
 type MapPlayerUtility = M.Map PlayerID Utility
+type UtilityLS = [(PlayerID,Utility)]
 
 data Parameters = Parameters
   { exchangeRate :: ContractState
   , name1        :: Agent
   , name2        :: Agent
   , upperBound   :: Double
-  , goalFunctionCoordinator :: (MapTransactionResults, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
+  , actionSpaceTXs1 :: [SwapTransaction]
+  , actionSpaceTXs2 :: [SwapTransaction]
+  , goalFunctionCoordinator :: (TransactionResultsLS, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
   , mapEndowments :: MapPlayerEndowment
   } 

@@ -15,7 +15,7 @@ Defines concrete strategies
 -- 1. Equilibrium notion
 ------------------------
 -- | Equilibrium definition for complete game
-equilibriumCompleteGame strategy Parameters{..} = evaluate (completeGame exchangeRate name1 name2 upperBound goalFunctionCoordinator) strategy context
+equilibriumCompleteGame strategy Parameters{..} = evaluate (completeGame exchangeRate name1 name2 upperBound goalFunctionCoordinator actionSpaceTXs1 actionSpaceTXs2) strategy context
   where
     context =
       StochasticStatefulContext
@@ -25,3 +25,7 @@ equilibriumCompleteGame strategy Parameters{..} = evaluate (completeGame exchang
 -- 2. Display equilibrium information only
 ------------------------------------------
 printEquilibriumCompleteGame strategy parameters = generateIsEq $ equilibriumCompleteGame strategy parameters
+
+printOutputCompleteGame strategy parameters = generateOutput $ equilibriumCompleteGame strategy parameters
+
+findEqCompleteGame strategy parameters = generateEquilibrium $ equilibriumCompleteGame strategy parameters

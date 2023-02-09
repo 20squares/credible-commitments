@@ -10,20 +10,19 @@ import AMM.Payoffs
 import AMM.Types
 import OpenGames.Engine.Engine
 import OpenGames.Preprocessor
-import Data.List (permutations)
 
 {-
 Provides the complete open game
 -}
 
 
-completeGame exchangeRate name1 name2 upperBound goalFunctionCoordinator = [opengame|
+completeGame exchangeRate name1 name2 upperBound goalFunctionCoordinator actionSpaceTXs1 actionSpaceTXs2 = [opengame|
   inputs: mapEndowments, state ;
   feedback: ;
 
   :------:
   inputs : state ;
-  operation : players name1 name2 upperBound ;
+  operation : players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2;
   outputs : transactionsSubmitted;
   returns : ;
 
