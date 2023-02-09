@@ -59,11 +59,11 @@ computePayoffMap = describe
    "test utility is computed correctly for all players" $ do
      it "correct map - 1" $ do
        shouldBe
-         (computePayoffPlayerMap contractState1 (mapEndowments1,mapTransactions2,mapTransactionOutcomes2))
+         (computePayoffPlayerMap contractState1 (mapEndowments1,lsTransactions2,lsTransactionOutcomes2))
          mapUtility1
      it "correct map - 2" $ do
        shouldBe
-         (computePayoffPlayerMap contractState1 (mapEndowments1,mapTransactions1,mapTransactionOutcomes1))
+         (computePayoffPlayerMap contractState1 (mapEndowments1,lsTransactions1,lsTransactionOutcomes1))
          mapUtility2
 
 
@@ -71,24 +71,24 @@ computePayoffCoordinatorFee = describe
     "payoff is computed correctely for coordinator" $ do
       it "high and low fee -1" $ do
         shouldBe
-          (computePayoffCoordinatorMaxFee (mapTransactionOutcomes1,mapUtility1))
+          (computePayoffCoordinatorMaxFee (lsTransactionOutcomes1,mapUtility1))
           (10,(player1,-10))
       it "high and low fee -2" $ do
         shouldBe
-          (computePayoffCoordinatorMaxFee (mapTransactionOutcomes3,mapUtility1))
+          (computePayoffCoordinatorMaxFee (lsTransactionOutcomes3,mapUtility1))
           (5,(player1,-5))
       it "low and high fee " $ do
         shouldBe
-          (computePayoffCoordinatorMaxFee (mapTransactionOutcomes4,mapUtility1))
+          (computePayoffCoordinatorMaxFee (lsTransactionOutcomes4,mapUtility1))
           (0,(player1,0))
 
 computePayoffCoordinatorSum = describe
     "payoff is computed correctely for coordinator" $ do
       it "sum of utility -1" $ do
         shouldBe
-          (computePayoffCoordinatorMaxPlayerUtility (mapTransactionOutcomes1,mapUtility1))
+          (computePayoffCoordinatorMaxPlayerUtility (lsTransactionOutcomes1,mapUtility1))
           (381.5,(player1,-10))
       it "sum of utility -2" $ do
         shouldBe
-          (computePayoffCoordinatorMaxPlayerUtility (mapTransactionOutcomes2,mapUtility2))
+          (computePayoffCoordinatorMaxPlayerUtility (lsTransactionOutcomes2,mapUtility2))
           (265,(player1,-10))

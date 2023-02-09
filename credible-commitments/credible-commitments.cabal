@@ -46,7 +46,6 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
-    , dhall
     , open-games-hs
     , probability
   default-language: Haskell2010
@@ -62,7 +61,6 @@ executable credible-commitments-exe
       base >=4.7 && <5
     , containers
     , credible-commitments
-    , dhall
     , open-games-hs
     , probability
   default-language: Haskell2010
@@ -83,7 +81,6 @@ test-suite credible-commitments-test
       base >=4.7 && <5
     , containers
     , credible-commitments
-    , dhall
     , hspec
     , open-games-hs
     , probability

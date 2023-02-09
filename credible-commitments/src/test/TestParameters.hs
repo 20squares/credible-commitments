@@ -2,7 +2,7 @@ module TestParameters where
 
 import AMM.Types
 
-import qualified Dhall.Map as M
+import qualified Data.Map.Strict as M
 -------------
 -- Parameters
 
@@ -28,16 +28,16 @@ transaction2 = ((Swap1 25), 10)
 transaction3 = ((Swap1 25), 5)
 transaction4 = ((Swap1 25), 4)
 
-mapTransactions1 = M.fromList [(player1,transaction1),(player2,transaction1)]
-mapTransactions1' = M.fromList [(player2,transaction1),(player1,transaction1)]
+lsTransactions1 =  [(player1,transaction1),(player2,transaction1)]
+lsTransactions1' =  [(player2,transaction1),(player1,transaction1)]
 
-mapTransactions2 = M.fromList [(player1,transaction2),(player2,transaction2)]
-mapTransactions3 = M.fromList [(player1,transaction3),(player2,transaction4)]
-mapTransactions4 = M.fromList [(player1,transaction4),(player2,transaction3)]
-mapTransactions4' = M.fromList [(player2,transaction3),(player1,transaction4)]
+lsTransactions2 =  [(player1,transaction2),(player2,transaction2)]
+lsTransactions3 =  [(player1,transaction3),(player2,transaction4)]
+lsTransactions4 =  [(player1,transaction4),(player2,transaction3)]
+lsTransactions4' =  [(player2,transaction3),(player1,transaction4)]
 
-mapTransactionsFromParameterization = M.fromList [("player1",(Swap0 50.0,0.0)),("player2",(Swap0 40.0,0.5))]
-mapTransactionsFromParameterization' = M.fromList [("player2",(Swap0 40.0,0.5)), ("player1",(Swap0 50.0,0.0))]
+lsTransactionsFromParameterization =  [("player1",(Swap0 50.0,0.0)),("player2",(Swap0 40.0,0.5))]
+lsTransactionsFromParameterization' =  [("player2",(Swap0 40.0,0.5)), ("player1",(Swap0 50.0,0.0))]
 -- Outcome data
 transactionOutcome0, transactionOutcome1,transactionOutcome2, transactionOutcome3, transactionOutcome4, transactionOutcome5, transactionOutcome6, transactionOutcome7 :: TransactionResult
 transactionOutcome0 = (Swap1Out 49, (200,51),10)
@@ -49,12 +49,12 @@ transactionOutcome5 = (Swap0Out 12.5, (68.5,150),10)
 transactionOutcome6 = (Swap0Out 49, (51,200),5)
 transactionOutcome7 = (Swap0Out 49, (51,200),0)
   
-mapTransactionOutcomes1 = M.fromList [(player1,transactionOutcome1),(player2,transactionOutcome4)]
-mapTransactionOutcomes2 = M.fromList [(player1,transactionOutcome2),(player2,transactionOutcome5)]
+lsTransactionOutcomes1 =  [(player1,transactionOutcome1),(player2,transactionOutcome4)]
+lsTransactionOutcomes2 =  [(player1,transactionOutcome2),(player2,transactionOutcome5)]
 
 -- | for testing coordinator
-mapTransactionOutcomes3 = M.fromList [(player1,transactionOutcome6),(player2,transactionOutcome7)]
-mapTransactionOutcomes4 = M.fromList [(player1,transactionOutcome7),(player2,transactionOutcome6)]
+lsTransactionOutcomes3 =  [(player1,transactionOutcome6),(player2,transactionOutcome7)]
+lsTransactionOutcomes4 =  [(player1,transactionOutcome7),(player2,transactionOutcome6)]
 
 
 

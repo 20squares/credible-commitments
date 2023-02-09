@@ -8,7 +8,7 @@ import AMM.AMM
 import AMM.Payoffs
 import AMM.Types
 import Data.List (maximumBy)
-import qualified Dhall.Map as M
+import qualified Data.Map.Strict as M
 import Data.Ord (comparing)
 
 {-
@@ -68,16 +68,13 @@ chooseMaximalFee ls =
     findMaximalElement :: [(TransactionsLS, Fee)] -> Fee
     findMaximalElement ls = snd $ maximumBy (comparing snd) ls
 
-
-
-{-
 -- Maximize utility of players
 maxUtilityStrategy
   :: MapPlayerEndowment
   -> Kleisli
        Stochastic
-          (MapTransactions, ContractState)
-          MapTransactions
+          (TransactionsLS, ContractState)
+          TransactionsLS
 maxUtilityStrategy endowment = Kleisli
  (\observation -> 
     let actionLS  = actionSpaceCoordinator observation
@@ -85,26 +82,25 @@ maxUtilityStrategy endowment = Kleisli
         actionLS' = [(contractState,txs)| txs <- actionLS]
         results   = [(contractState,endowment, txs, mapSwapsWithAmounts (txs,state))| (state,txs) <- actionLS']
         utilityLS = [(txs, computePayoffPlayerMap contractState (endowment,txs,resultsTXs))| (state,endowment, txs, resultsTXs) <- results]
-        chooseMaximalUtility = fst $ maximumBy (comparing snd) [(txs, foldr (+) 0 $ fmap snd $ M.toList utility)| (txs,utility) <- utilityLS]
+        chooseMaximalUtility = fst $ maximumBy (comparing snd) [(txs, M.foldr (+) 0 $ utility)| (txs,utility) <- utilityLS]
         in playDeterministically $ chooseMaximalUtility)
---}
 
 
 -- Composing strategy tuple
-strategyTupleMaxFee swap1 swap2 fee1 fee2  = 
+strategyTupleMaxFee swap1 swap2 fee1 fee2  =
   strategySwap swap1        -- Player 1 swap tx
   ::- strategyFee fee1      -- Player 1 coinbase.transfer
   ::- strategySwap swap2    -- Player 2 swap tx
   ::- strategyFee fee2      -- Player 2 coinbase.transfer
-  ::- undefined -- maxFeeStrategy        -- Coordinator strategy FIXME
+  ::- maxFeeStrategy        -- Coordinator strategy
   ::- Nil
 
 -- Composing strategy tuple
-strategyTupleMaxUtility swap1 swap2 fee1 fee2 endowmentMap = 
+strategyTupleMaxUtility swap1 swap2 fee1 fee2 endowmentMap =
   strategySwap swap1                   -- Player 1 swap tx
   ::- strategyFee fee1                 -- Player 1 coinbase.transfer
   ::- strategySwap swap2               -- Player 2 swap tx
   ::- strategyFee fee2                 -- Player 2 coinbase.transfer
-  ::- undefined -- maxUtilityStrategy endowmentMap  -- Coordinator strategy FIXME
+  ::- maxUtilityStrategy endowmentMap  -- Coordinator strategy
   ::- Nil
 

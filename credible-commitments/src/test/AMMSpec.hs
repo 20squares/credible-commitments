@@ -4,7 +4,6 @@ import AMM.AMM
 import AMM.Types
 import TestParameters
 
-import qualified Dhall.Map as M
 import Test.Hspec
 
 spec :: Spec
@@ -35,9 +34,9 @@ ammMapFunctionality = describe
    "test amm functionality for sequence of txs" $ do
      it "simple sequence - 1" $ do
        shouldBe
-         (mapSwapsWithAmounts (mapTransactions1, contractState1))
-         (mapTransactionOutcomes1)
+         (mapSwapsWithAmounts (lsTransactions1, contractState1))
+         (lsTransactionOutcomes1)
      it "simple sequence - 2" $ do
        shouldBe
-         (mapSwapsWithAmounts (mapTransactions2, contractState1))
-         (mapTransactionOutcomes2)
+         (mapSwapsWithAmounts (lsTransactions2, contractState1))
+         (lsTransactionOutcomes2)
