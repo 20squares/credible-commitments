@@ -36,6 +36,7 @@
         - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator-1)
         - [The AMM game](#the-amm-game-1)
     - [Running the analytics](#running-the-analytics)
+    - [Results](#results)
     - [Sanity checks](#sanity-checks)
 # Summary
 
@@ -591,7 +592,7 @@ strategyTupleCoordinator =
 
 ### The AMM game
 
-In [The AMM game](#the-amm-game), we define the following strategies, defining the basic type of swap transaction, the fee to be paid to **Coordinator**, and finally **Coordinator** strategy. 
+In [The AMM game](#the-amm-game), we define the following strategies, defining the basic type of swap transaction and the fee to be paid to **Coordinator**: 
 
 
 ```haskell
@@ -612,27 +613,107 @@ strategyFee
           (ContractState, SwapTransaction)
           Fee
 strategyFee fee = pureAction fee
+```
 
+The **Coordinator** strategy is more involved. We define two different kinds of strategies: In the first, **Coordinator** is greedy and just wants to maximize its own utility, given by the fees paid by the players. In the second one, **Coordinator** is altruistict, and chooses the ordering that maximizes the summ of both *player's payoffs.
+
+Clearly, these two strategies will result in equilibria for different **Coordinator**'s payoffs.
+
+
+```haskell
+-----------------------
 -- Strategy coordinator
+-----------------------
+
+-- Maximize fee received by players
 maxFeeStrategy
   :: Kleisli
        Stochastic
-          (MapTransactions, ContractState)
-          MapTransactions
+          (TransactionsLS, ContractState)
+          TransactionsLS
 maxFeeStrategy = Kleisli
- (\observation -> playDeterministically $ chooseMaximalFee $ actionSpaceCoordinator observation)
- where
-    chooseMaximalFee :: [MapTransactions] -> MapTransactions
-    chooseMaximalFee lsOfMaps =
-      fst $ maximumBy (comparing snd) [(x, snd . head . M.toList $ x)| x <- lsOfMaps]
+ (\observation ->
+    let ls = chooseMaximalFee $ transformLs $ actionSpaceCoordinator observation
+        in if length ls == 1
+              then playDeterministically $ fst $ head ls -- ^ if only one element, play deterministically
+              else uniformDist $ fmap fst ls)            -- ^ if several elements, randomize uniformly
 
--- Complete tuple
-strategyTupleMaxFee swap1 swap2 fee1 fee2  = 
+-- Transform into pair of (fee,tx)
+transformLs :: [[(PlayerID,Transaction)]] -> [(TransactionsLS, Fee)] 
+transformLs ls = [(x, snd . snd . head $ x)| x <- ls]
+
+
+-- Filter the list by the maximum elements
+chooseMaximalFee
+  :: [(TransactionsLS, Fee)] -> [(TransactionsLS, Fee)]
+chooseMaximalFee ls =
+  filter  (\(_,x) -> x == findMaximalElement ls) ls
+  where
+    findMaximalElement :: [(TransactionsLS, Fee)] -> Fee
+    findMaximalElement ls = snd $ maximumBy (comparing snd) ls
+
+-- Maximize utility of players
+maxUtilityStrategy
+  :: MapPlayerEndowment
+  -> Kleisli
+       Stochastic
+          (TransactionsLS, ContractState)
+          TransactionsLS
+maxUtilityStrategy endowment = Kleisli
+ (\observation -> 
+    let actionLS  = actionSpaceCoordinator observation
+        contractState     = snd observation
+        actionLS' = [(contractState,txs)| txs <- actionLS]
+        results   = [(contractState,endowment, txs, mapSwapsWithAmounts (txs,state))| (state,txs) <- actionLS']
+        utilityLS = [(txs, computePayoffPlayerMap contractState (endowment,txs,resultsTXs))| (state,endowment, txs, resultsTXs) <- results]
+        chooseMaximalUtility = fst $ maximumBy (comparing snd) [(txs, M.foldr (+) 0 $ utility)| (txs,utility) <- utilityLS]
+        in playDeterministically $ chooseMaximalUtility)
+```
+
+Furthermore, we provide a 'manual strategy', where we feed **Coordinator** a pre-made transaction ordering. This ordering may very well not be an equilibrium. This manual strategy will be used to do manual fee search, see [Results](#results) for details.
+
+```haskell
+-- Provide manual strategy input for exploration
+manualStrategy
+  :: TransactionsLS 
+  -> MapPlayerEndowment
+  -> Kleisli
+       Stochastic
+          (TransactionsLS, ContractState)
+          TransactionsLS
+manualStrategy ls _ =
+  pureAction ls
+```
+
+As usual, the single strategies are packed into strategy tuples:
+
+
+```haskell
+-- Composing strategy tuple max fee
+strategyTupleMaxFee swap1 swap2 fee1 fee2  =
   strategySwap swap1        -- Player 1 swap tx
-  ::- strategyFee fee1     -- Player 1 coinbase.transfer
+  ::- strategyFee fee1      -- Player 1 coinbase.transfer
   ::- strategySwap swap2    -- Player 2 swap tx
   ::- strategyFee fee2      -- Player 2 coinbase.transfer
   ::- maxFeeStrategy        -- Coordinator strategy
+  ::- Nil
+
+-- Composing strategy tuple max utility
+strategyTupleMaxUtility swap1 swap2 fee1 fee2 endowmentMap =
+  strategySwap swap1                   -- Player 1 swap tx
+  ::- strategyFee fee1                 -- Player 1 coinbase.transfer
+  ::- strategySwap swap2               -- Player 2 swap tx
+  ::- strategyFee fee2                 -- Player 2 coinbase.transfer
+  ::- maxUtilityStrategy endowmentMap  -- Coordinator strategy
+  ::- Nil
+
+-- Composing strategy tuple max utility
+strategyTupleManualCoordinator swap1 swap2 fee1 fee2 endowmentMap ls =
+  strategySwap swap1                   -- Player 1 swap tx
+  ::- strategyFee fee1                 -- Player 1 coinbase.transfer
+  ::- strategySwap swap2               -- Player 2 swap tx
+  ::- strategyFee fee2                 -- Player 2 coinbase.transfer
+  ::- manualStrategy ls endowmentMap  -- Coordinator strategy
   ::- Nil
 ```
 
@@ -650,7 +731,9 @@ In particular, calling the function `main` in interactive mode will result in th
 
 ## Results
 
-The summary of our results can be found right at the top of this document, at the subsection [analytics results](#analytics-results). There wasn't much more than this to say, basically the equilibrium of every game was the one Xin already calculated.
+The summary of our results can be found right at the top of this document, at the subsection [analytics results](#analytics-results). 
+
+In the prisoner's dilemma case there wasn't much to say: basically the equilibrium of every game was the one Xin already calculated.
 
 ### Sanity checks
 

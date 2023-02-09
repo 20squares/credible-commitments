@@ -21,15 +21,15 @@ main = do
 -----
 
 mainPD = do
-  putStrLn "1. Prioner's dilemma"
+  putStrLn "1. Vanilla prioner's dilemma"
   isEquilibriumPrisonersDilemma strategyTupleDefect
-  putStrLn "2. Commitment"
+  putStrLn "2. PRisoner's dilemma with a commitment device"
   isEquilibriumPrisonersDilemmaCommitment conditionalCooperate bobStrategyCooperate
-  putStrLn "3. Branching game"
+  putStrLn "3. Prisoner's dilemma with branching"
   isEquilibriumPrisonersDilemmaAliceChoice conditionalCooperate strategyTupleCommit
-  putStrLn "4. Branching game with transfer"
+  putStrLn "4. Prisoner's dilemma with extortion"
   isEquilibriumPrisonersDilemmaAliceChoiceTransfer conditionalCooperateTransfer strategyTupleCommitTransfer
-  putStrLn "5. Coordinator game"
+  putStrLn "5. Prisoner's dilemma with a coordinator"
   isEquilibriumPrisonersDilemmaCoordinator conditionalCooperateTransfer strategyTupleCoordinator
 
 ------
