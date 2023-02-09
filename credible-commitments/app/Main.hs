@@ -2,9 +2,41 @@ module Main (main) where
 
 import AMM.Analytics
 import AMM.Parameterization
+import PD.Analytics
+import PD.Coordinator
+import PD.PD
+import PD.Strategies
 
 main :: IO ()
 main = do
+  putStrLn "//////////PD//////////"
+  mainPD
+  putStrLn "//////////AMM//////////"
+  mainAMM
+
+
+
+-----
+-- PD
+-----
+
+mainPD = do
+  putStrLn "1. Prioner's dilemma"
+  isEquilibriumPrisonersDilemma strategyTupleDefect
+  putStrLn "2. Commitment"
+  isEquilibriumPrisonersDilemmaCommitment conditionalCooperate bobStrategyCooperate
+  putStrLn "3. Branching game"
+  isEquilibriumPrisonersDilemmaAliceChoice conditionalCooperate strategyTupleCommit
+  putStrLn "4. Branching game with transfer"
+  isEquilibriumPrisonersDilemmaAliceChoiceTransfer conditionalCooperateTransfer strategyTupleCommitTransfer
+  putStrLn "5. Coordinator game"
+  isEquilibriumPrisonersDilemmaCoordinator conditionalCooperateTransfer strategyTupleCoordinator
+
+------
+-- AMM
+------
+
+mainAMM = do
   putStrLn "Run parameterized analytics for AMM game - max utility"
   mainAMMMaxUtility
   putStrLn "Run parameterized analytics for AMM game - manual utility"
@@ -13,6 +45,8 @@ main = do
   print idFee
   putStrLn "Show output for these fees"
   mapM_ mainAMMGreedy idFee
+
+
 
 -- Identify the equilibrium for a pair of fees
 mainAMMGreedyFindEqFee (fee1,fee2) = do
