@@ -89,18 +89,6 @@ players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2 =
 
 |]
 
-coordinator
-  :: OpenGame
-       StochasticStatefulOptic
-       StochasticStatefulContext
-       '[Kleisli
-           Stochastic (MapTransactions, ContractState) MapTransactions]
-       '[[DiagnosticInfoBayesian
-            (MapTransactions, ContractState) MapTransactions]]
-       (MapTransactions, ContractState)
-       ()
-       MapTransactions
-       Payoff
 coordinator  = [opengame|
   inputs: transactionsSubmitted, state ;
   feedback: ;
@@ -121,33 +109,33 @@ coordinator  = [opengame|
 
 -- Amm functionality
 amm  = [opengame|
-  inputs: mapTransaction, state ;
+  inputs: lsTransactionsOrdered, state ;
   feedback: ;
 
   :------:
 
-  inputs : mapTransaction, state ;
+  inputs : lsTransactionsOrdered, state ;
   operation : forwardFunction $  mapSwapsWithAmounts ;
-  outputs : mapOutput;
+  outputs : lsResults;
 
   :------:
-  outputs : mapOutput;
+  outputs : lsResults;
   returns : ;
 |]
 
 -- Payoffs for coordinator
 payoffsCoordinator exchangeRate goalFunction = [opengame|
-  inputs:  mapEndowments, mapTransactions,mapResults ;
+  inputs:  mapEndowments, lsTransactions,lsResults ;
   feedback: ;
 
   :------:
 
-  inputs : mapEndowments, mapTransactions, mapResults ;
+  inputs : mapEndowments, lsTransactions, lsResults ;
   operation : forwardFunction $ computePayoffPlayerMap exchangeRate;
   outputs : utilityMap ;
   // Repeat component here for localizing the information
 
-  inputs : mapResults, utilityMap ;
+  inputs : lsResults, utilityMap ;
   operation : forwardFunction $ goalFunction ;
   outputs : payoffCoordinator, payoffPlayer ;
 

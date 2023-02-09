@@ -3,7 +3,7 @@ module AMM.Payoffs where
 
 import OpenGames.Engine.Engine
 import AMM.Types
-import qualified Dhall.Map as M
+import qualified Data.Map.Strict as M
 
 {-
 Defines payoffs for players
@@ -16,27 +16,31 @@ Defines payoffs for players
 -- Compute payoff for coordinator by maximizing the fee
 -- Compute fee payment by relevant player
 -- NOTE We assume here that only the first transaction has to pay a fee
-computePayoffCoordinatorMaxFee :: (MapTransactionResults, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
-computePayoffCoordinatorMaxFee (mapResults,_) =
-  let ls = M.toList mapResults
-      (playerID, (_,_,fee)) = head ls
+computePayoffCoordinatorMaxFee :: (TransactionResultsLS, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
+computePayoffCoordinatorMaxFee (ls,_) =
+  let (playerID, (_,_,fee)) = head ls
       in (fee,(playerID, -fee))
 
 -- Compute payoff for coordinator by maximizing utility of players
 -- Compute fee payment by relevant player
 -- NOTE We assume here that only the first transaction has to pay a fee
-computePayoffCoordinatorMaxPlayerUtility :: (MapTransactionResults, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
-computePayoffCoordinatorMaxPlayerUtility (mapResults,mapUtility) =
-  let ls = M.toList mapResults
-      (playerID, (_,_,fee)) = head ls
-      sumUtility = foldr (+) 0 $ fmap snd $ M.toList mapUtility
+computePayoffCoordinatorMaxPlayerUtility :: (TransactionResultsLS, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
+computePayoffCoordinatorMaxPlayerUtility (ls,mapUtility) =
+  let (playerID, (_,_,fee)) = head ls
+      sumUtility = M.foldr (+) 0  mapUtility 
       in (sumUtility, (playerID, -fee))
 
 -- Compute Utility Map for all players in denomination of the first currency
-computePayoffPlayerMap contractState (mapEndowments, mapTransactions ,mapResults) =
+computePayoffPlayerMap
+  :: ContractState
+     -> (MapPlayerEndowment
+        ,TransactionsLS
+        ,TransactionResultsLS)
+     -> MapPlayerUtility
+computePayoffPlayerMap contractState (mapEndowments, lsTransactions ,lsResults) =
   let updatePayoffSinglePlayer k =
-        let Just findTX = M.lookup k mapTransactions
-            Just findResults = M.lookup k mapResults
+        let findTX = snd $ head $ filter (\(name,tx) -> name == k) lsTransactions
+            findResults = snd $ head $ filter (\(name,result) -> name == k) lsResults
             in updateBalance contractState findTX findResults
                 in M.mapWithKey updatePayoffSinglePlayer mapEndowments
 
@@ -57,6 +61,4 @@ updateBalance contractState (swapTransaction,_) (result,_,_) (endowment0,endowme
     denominateInFirstCurrency contractState (x1,x2) = x1 + x2 * (snd contractState / fst contractState)
 
 -- Project out payoffs for two players
-projectPlayerPayoff name utilityMap =
-  let Just findUtility = M.lookup name utilityMap
-      in findUtility
+projectPlayerPayoff name utilityMap = utilityMap M.! name

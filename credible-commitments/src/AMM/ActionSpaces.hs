@@ -4,7 +4,6 @@ module AMM.ActionSpaces where
 import OpenGames.Engine.Engine
 import AMM.Types
 import Data.List (permutations)
-import qualified Dhall.Map as M
 
 {-
 Defines the available actions for players
@@ -21,11 +20,9 @@ actionSpaceFee upperBound  = [0..upperBound]
 combineTXAndFee swap fee = (swap, fee)
 
 -- Create list of all possible transaction orderings
-actionSpaceCoordinator :: (MapTransactions,ContractState) -> [MapTransactions]
-actionSpaceCoordinator (mapTransactions, _ ) =
-  let ls = M.toList mapTransactions
-      in map M.fromList (permutations ls)
+actionSpaceCoordinator :: (TransactionsLS,ContractState) -> [TransactionsLS]
+actionSpaceCoordinator (lsTransactions, _ ) = permutations lsTransactions
 
 -- Combine two transactions into a list of transactions
-combineTXIntoList name1 name2 (tx1,tx2) = M.fromList [(name1,tx1),(name2,tx2)]
+combineTXIntoList name1 name2 (tx1,tx2) = [(name1,tx1),(name2,tx2)]
 

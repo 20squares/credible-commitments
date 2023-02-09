@@ -39,20 +39,38 @@ strategyFee fee = pureAction fee
 
 -----------------------
 -- Strategy coordinator
+-----------------------
 
 -- Maximize fee received by players
 maxFeeStrategy
   :: Kleisli
        Stochastic
-          (MapTransactions, ContractState)
-          MapTransactions
+          (TransactionsLS, ContractState)
+          TransactionsLS
 maxFeeStrategy = Kleisli
- (\observation -> playDeterministically $ chooseMaximalFee $ actionSpaceCoordinator observation)
- where
-    chooseMaximalFee :: [MapTransactions] -> MapTransactions
-    chooseMaximalFee lsOfMaps =
-      fst $ maximumBy (comparing snd) [(x, snd . snd . head . M.toList $ x)| x <- lsOfMaps]
+ (\observation ->
+    let ls = chooseMaximalFee $ transformLs $ actionSpaceCoordinator observation
+        in if length ls == 1
+              then playDeterministically $ fst $ head ls -- ^ if only one element, play deterministically
+              else uniformDist $ fmap fst ls)            -- ^ if several elements, randomize uniformly
 
+-- Transform into pair of (fee,tx)
+transformLs :: [[(PlayerID,Transaction)]] -> [(TransactionsLS, Fee)] 
+transformLs ls = [(x, snd . snd . head $ x)| x <- ls]
+
+
+-- Filter the list by the maximum elements
+chooseMaximalFee
+  :: [(TransactionsLS, Fee)] -> [(TransactionsLS, Fee)]
+chooseMaximalFee ls =
+  filter  (\(_,x) -> x == findMaximalElement ls) ls
+  where
+    findMaximalElement :: [(TransactionsLS, Fee)] -> Fee
+    findMaximalElement ls = snd $ maximumBy (comparing snd) ls
+
+
+
+{-
 -- Maximize utility of players
 maxUtilityStrategy
   :: MapPlayerEndowment
@@ -69,7 +87,7 @@ maxUtilityStrategy endowment = Kleisli
         utilityLS = [(txs, computePayoffPlayerMap contractState (endowment,txs,resultsTXs))| (state,endowment, txs, resultsTXs) <- results]
         chooseMaximalUtility = fst $ maximumBy (comparing snd) [(txs, foldr (+) 0 $ fmap snd $ M.toList utility)| (txs,utility) <- utilityLS]
         in playDeterministically $ chooseMaximalUtility)
-
+--}
 
 
 -- Composing strategy tuple
@@ -78,7 +96,7 @@ strategyTupleMaxFee swap1 swap2 fee1 fee2  =
   ::- strategyFee fee1      -- Player 1 coinbase.transfer
   ::- strategySwap swap2    -- Player 2 swap tx
   ::- strategyFee fee2      -- Player 2 coinbase.transfer
-  ::- maxFeeStrategy        -- Coordinator strategy
+  ::- undefined -- maxFeeStrategy        -- Coordinator strategy FIXME
   ::- Nil
 
 -- Composing strategy tuple
@@ -87,5 +105,6 @@ strategyTupleMaxUtility swap1 swap2 fee1 fee2 endowmentMap =
   ::- strategyFee fee1                 -- Player 1 coinbase.transfer
   ::- strategySwap swap2               -- Player 2 swap tx
   ::- strategyFee fee2                 -- Player 2 coinbase.transfer
-  ::- maxUtilityStrategy endowmentMap  -- Coordinator strategy
+  ::- undefined -- maxUtilityStrategy endowmentMap  -- Coordinator strategy FIXME
   ::- Nil
+
