@@ -41,7 +41,7 @@ mainAMM = do
   mainAMMMaxUtility
   putStrLn "Run parameterized analytics for AMM game - manual utility"
   mainAMMManual
-  putStrLn "Identify eq pair of fees"
+  putStrLn "Identify the pair of fees giving equilibrium"
   print idFee
   putStrLn "Show output for these fees"
   mapM_ mainAMMGreedy idFee

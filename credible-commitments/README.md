@@ -735,6 +735,33 @@ The summary of our results can be found right at the top of this document, at th
 
 In the prisoner's dilemma case there wasn't much to say: basically the equilibrium of every game was the one Xin already calculated.
 
+As for the AMM, things were more complicated. As we mentioned, **Coordinator** can be modelled with two different kinds of utility functio**ns, and this difference greatly influences equilibria.
+
+- On one hand, **Coordinator** can be greedy. This means that the utility function will look at the fees paid and will try to maximize them. As a consequence, the best strategy for both players is to bet high to frontrun each other. This begs the question: How much should players pay to frontrun each other? We provided an example of this by instanting the game with the following parameters, to be found in `Parameters.hs` (see [File structure](#file-structure) for more information):
+
+    ```haskell
+    testParametersGreedy = Parameters
+    (100,100)                                 -- Initial AMM exchange rate
+    player1                                   -- Alice
+    player2                                   -- Bob
+    50                                        -- Max coinbase.transfer for Coordinator
+    actionSpace1                              -- Action space available for player1
+    actionSpace2                              -- Action space available for player2
+    computePayoffCoordinatorMaxFee            -- Coordinator's goal function: maximizes fees
+    testEndowments                            -- Initial player endowments
+    ```
+
+    Again, in the same file we defined a test strategy as follows: 
+
+    ```haskell
+    testStrategiesGreedy fee1 fee2 = strategyTupleMaxFee (Swap0 50) (Swap0 40) fee1 fee2
+    ```
+
+    Here we see that we hardcoded the fact that the first player wants to swap $50$ tokens, while the second wants to swap $40$. The direction of the swap is the same for both players. 
+    
+    In `Main.hs` we implemented the function `mainAMMGreedyFindEqFee` that takes two fees as input and tells us if these result in a equilibrium or not. This can be tested in [Interactive execution](#interactive-execution) mode. Moreover, we also implemented the function `idFee` which searches over the space of possible fees and prints the pairs resulting in equilibrium. Again, this can be tested in [Interactive execution](#interactive-execution) mode. This function is also automatically run in `main`, as one can see by running `stack run`.
+
+
 ### Sanity checks
 
 As for sanity checks, we played with the payoff parameters to verify that, indeed, the equilibrium of the modelled games breaks when it is supposed to. For instance, having defined the payoff matrix as follows:
