@@ -85,8 +85,18 @@ maxUtilityStrategy endowment = Kleisli
         chooseMaximalUtility = fst $ maximumBy (comparing snd) [(txs, M.foldr (+) 0 $ utility)| (txs,utility) <- utilityLS]
         in playDeterministically $ chooseMaximalUtility)
 
+-- Provide manual strategy input for exploration
+manualStrategy
+  :: TransactionsLS 
+  -> MapPlayerEndowment
+  -> Kleisli
+       Stochastic
+          (TransactionsLS, ContractState)
+          TransactionsLS
+manualStrategy ls _ =
+  pureAction ls
 
--- Composing strategy tuple
+-- Composing strategy tuple max fee
 strategyTupleMaxFee swap1 swap2 fee1 fee2  =
   strategySwap swap1        -- Player 1 swap tx
   ::- strategyFee fee1      -- Player 1 coinbase.transfer
@@ -95,12 +105,21 @@ strategyTupleMaxFee swap1 swap2 fee1 fee2  =
   ::- maxFeeStrategy        -- Coordinator strategy
   ::- Nil
 
--- Composing strategy tuple
+-- Composing strategy tuple max utility
 strategyTupleMaxUtility swap1 swap2 fee1 fee2 endowmentMap =
   strategySwap swap1                   -- Player 1 swap tx
   ::- strategyFee fee1                 -- Player 1 coinbase.transfer
   ::- strategySwap swap2               -- Player 2 swap tx
   ::- strategyFee fee2                 -- Player 2 coinbase.transfer
   ::- maxUtilityStrategy endowmentMap  -- Coordinator strategy
+  ::- Nil
+
+-- Composing strategy tuple max utility
+strategyTupleManualCoordinator swap1 swap2 fee1 fee2 endowmentMap ls =
+  strategySwap swap1                   -- Player 1 swap tx
+  ::- strategyFee fee1                 -- Player 1 coinbase.transfer
+  ::- strategySwap swap2               -- Player 2 swap tx
+  ::- strategyFee fee2                 -- Player 2 coinbase.transfer
+  ::- manualStrategy ls endowmentMap  -- Coordinator strategy
   ::- Nil
 

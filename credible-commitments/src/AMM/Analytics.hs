@@ -24,4 +24,8 @@ equilibriumCompleteGame strategy Parameters{..} = evaluate (completeGame exchang
 ------------------------------------------
 -- 2. Display equilibrium information only
 ------------------------------------------
-printEquilibriumCompleteGame strategy parameters = generateOutput $ equilibriumCompleteGame strategy parameters
+printEquilibriumCompleteGame strategy parameters = generateIsEq $ equilibriumCompleteGame strategy parameters
+
+printOutputCompleteGame strategy parameters = generateOutput $ equilibriumCompleteGame strategy parameters
+
+findEqCompleteGame strategy parameters = generateEquilibrium $ equilibriumCompleteGame strategy parameters
