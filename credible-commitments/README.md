@@ -622,7 +622,7 @@ strategyFee fee = pureAction fee
 
 The **Coordinator** strategy is more involved. We define two different kinds of strategies: In the first, **Coordinator** is greedy and just wants to maximize its own utility, given by the fees paid by the players. In the second one, **Coordinator** is altruistic, and chooses the ordering that maximizes the summ of both player's payoffs.
 
-Clearly, these two strategies will result in equilibria for *different* **Coordinator**'s payoffs.
+Clearly, these two strategies will result in equilibria for *different* **Coordinator**'s payoffs (these are defined in `Payoffs.hs`, see [File structure](#file-structure) for more information).
 
 
 ```haskell
