@@ -9,12 +9,10 @@ import PD.Strategies
 
 main :: IO ()
 main = do
-  putStrLn "//////////PD//////////"
+  putStrLn "//////////PD//////////" 
   mainPD
   putStrLn "//////////AMM//////////"
   mainAMM
-
-
 
 -----
 -- PD
@@ -51,10 +49,10 @@ mainAMM = do
 -- Identify the equilibrium for a pair of fees
 mainAMMGreedyFindEqFee (fee1,fee2) = do
   findEqCompleteGame (testStrategiesGreedy fee1 fee2) testParametersGreedy
--- Run it on the available grid 
-idFee = [fee | fee <- (fmap (\x -> (x,x)) [0,1..50]), mainAMMGreedyFindEqFee fee ]
+-- Run it on the available grid
+idFee = [(a, b) | a <- [0,1..50], b <- [0,1..50], mainAMMGreedyFindEqFee (a,b)]
 
--- Show output for fee 
+-- Show output for fee
 mainAMMGreedy (fee1,fee2) = do
   putStrLn $ "With following fees" ++ (show (fee1,fee2))
   printOutputCompleteGame (testStrategiesGreedy fee1 fee2) testParametersGreedy

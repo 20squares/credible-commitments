@@ -5,6 +5,7 @@ module PD.Strategies where
 import OpenGames.Engine.Engine
 import PD.PD
 import PD.Coordinator
+import GHC.Base (Double)
 
 
 -------------
@@ -50,7 +51,7 @@ aliceStrategyCommit = pureAction commitmentChoice
 aliceStrategyPD = pureAction pdChoice
 
 -- Bob transfer strategy
-transferStrategy :: Kleisli Stochastic ActionPD Double
+transferStrategy :: Kleisli Stochastic ActionPD Double 
 transferStrategy =
   Kleisli $
     (\case
@@ -63,12 +64,7 @@ transferStrategy =
 
 -- NOTE: simplified assumption regarding bidding
 biddingStrategy :: Kleisli Stochastic () Double
-biddingStrategy = pureAction 2
-
-biddingStrategyZero :: Kleisli Stochastic () Double
-biddingStrategyZero = pureAction 0
-
-
+biddingStrategy = pureAction 1
 
 -- Strategy for the first player to commit
 -- NOTE we are feeding the information for first player and second player name identifiers forward
@@ -119,5 +115,3 @@ strategyTupleCoordinator =
   ::- defectStrategy            -- ^ if in the pd game which action does A choose?
   ::- defectStrategy            -- ^ if in the pd game which action does B choose?
   ::- Nil
-
-

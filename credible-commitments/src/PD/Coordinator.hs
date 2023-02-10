@@ -54,7 +54,7 @@ prisonersDilemmaRoleDependency commitment = [opengame|
    feedback  :      ;
    operation : dependentRoleDecision (const [Cooperate,Defect]);
    outputs   : decisionCooperate ;
-   returns   : payoffSecondAgent - decisionTransfer;
+   returns   : 0 ; // payoffSecondAgent - decisionTransfer;
 
    inputs    : secondAgent,decisionCooperate ;
    feedback  :      ;
