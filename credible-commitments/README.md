@@ -615,9 +615,9 @@ strategyFee
 strategyFee fee = pureAction fee
 ```
 
-The **Coordinator** strategy is more involved. We define two different kinds of strategies: In the first, **Coordinator** is greedy and just wants to maximize its own utility, given by the fees paid by the players. In the second one, **Coordinator** is altruistict, and chooses the ordering that maximizes the summ of both *player's payoffs.
+The **Coordinator** strategy is more involved. We define two different kinds of strategies: In the first, **Coordinator** is greedy and just wants to maximize its own utility, given by the fees paid by the players. In the second one, **Coordinator** is altruistic, and chooses the ordering that maximizes the summ of both player's payoffs.
 
-Clearly, these two strategies will result in equilibria for different **Coordinator**'s payoffs.
+Clearly, these two strategies will result in equilibria for *different* **Coordinator**'s payoffs.
 
 
 ```haskell
@@ -670,7 +670,7 @@ maxUtilityStrategy endowment = Kleisli
         in playDeterministically $ chooseMaximalUtility)
 ```
 
-Furthermore, we provide a 'manual strategy', where we feed **Coordinator** a pre-made transaction ordering. This ordering may very well not be an equilibrium. This manual strategy will be used to do manual fee search, see [Results](#results) for details.
+Furthermore, we provide a 'manual strategy', where we feed **Coordinator** a pre-made transaction ordering. This ordering may very well not result in an equilibrium. This manual strategy will be used to do manual fee search, see [Results](#results) for details.
 
 ```haskell
 -- Provide manual strategy input for exploration
@@ -733,9 +733,9 @@ In particular, calling the function `main` in interactive mode will result in th
 
 The summary of our results can be found right at the top of this document, at the subsection [analytics results](#analytics-results). 
 
-In the prisoner's dilemma case there wasn't much to say: basically the equilibrium of every game was the one Xin already calculated.
+In the prisoner's dilemma case there wasn't much to say: basically the equilibrium for every game was the one that Xin already calculated.
 
-As for the AMM, things were more complicated. As we mentioned, **Coordinator** can be modelled with two different kinds of utility functio**ns, and this difference greatly influences equilibria.
+As for the AMM, things were more complicated. As we mentioned in [Strategies employed in the analysis](#strategies-employed-in-the-analysis), we endowed **Coordinator** with two different kinds of utility functions, and this greatly influenced equilibria.
 
 - On one hand, **Coordinator** can be greedy. This means that the utility function will look at the fees paid and will try to maximize them. As a consequence, the best strategy for both players is to bet high to frontrun each other. This begs the question: How much should players pay to frontrun each other? We provided an example of this by instanting the game with the following parameters, to be found in `Parameters.hs` (see [File structure](#file-structure) for more information):
 
@@ -757,9 +757,22 @@ As for the AMM, things were more complicated. As we mentioned, **Coordinator** c
     testStrategiesGreedy fee1 fee2 = strategyTupleMaxFee (Swap0 50) (Swap0 40) fee1 fee2
     ```
 
-    Here we see that we hardcoded the fact that the first player wants to swap $50$ tokens, while the second wants to swap $40$. The direction of the swap is the same for both players. 
+    Here we see that we hardcoded the fact that the first player wants to swap $50$ tokens, while the second wants to swap $40$. So players in this game are *forced* to swap those precise amounts of tokens. The direction of the swap is the same for both players. 
     
-    In `Main.hs` we implemented the function `mainAMMGreedyFindEqFee` that takes two fees as input and tells us if these result in a equilibrium or not. This can be tested in [Interactive execution](#interactive-execution) mode. Moreover, we also implemented the function `idFee` which searches over the space of possible fees and prints the pairs resulting in equilibrium. Again, this can be tested in [Interactive execution](#interactive-execution) mode. This function is also automatically run in `main`, as one can see by running `stack run`.
+    
+    In `Main.hs` we implemented the function `mainAMMGreedyFindEqFee` that takes two fees as input and tells us if these result in a equilibrium or not. This can be tested in [Interactive execution](#interactive-execution) mode by giving:
+    
+    ```haskell
+    mainAMMGreedyFindEqFee (fee1, fee2)
+    ```
+
+    where `fee1` and `fee2` are numbers (`Double`).    
+    Moreover, we also implemented the function `idFee` which searches over the space of possible fees and prints the pairs resulting in equilibrium. Again, this can be tested in [Interactive execution](#interactive-execution) mode. This function is also automatically run in `main`, as one can see by running `stack run`. So we see that, having hardcoded some initial parameters, `idFee` finds what are the optimal fees that players should pay to **Coordinator**.
+    We found that the couples `(13,13)` and `(14,14)` result in equilibria.
+
+- On the other hand, we covered the case of an altruistic **Coordinator**. In this case, **Coordinator**'s payoff is taken to be the sum of the utilities of both players, so the more players are collectively gaining, the more **Coordinator** gains. 
+We verified that in this setup the optimal strategy for players is not paying any fees: This makes sense as **Coordinator** simply discards them, so paying fee would just result in a lower payoff for everyone.
+We verified that the equilibrium is obtained when **Coordinator** orders the transactions to *collectively* minimize both player's payoffs. 
 
 
 ### Sanity checks
@@ -789,3 +802,6 @@ $$ \pi_2 (\mathtt{Cooperate},\mathtt{Cooperate}) - n \leq \pi_2(\mathtt{Defect},
 where $\pi_2$ is the projection on the second component. That is, **Bob**'s incentive to cooperate in a context of extortion vanishes if the extorted value results in a total payoff that is *less* than what he would get by defecting.
 
 This sort of sanity checks can be performed by editing the values in the payoff matrix and `n` (hardcoded to be $1$ in the source code) as one pleases. Recompiling and runnning the analytics (see [Installation](#installation) and [Running the analytics](#running-the-analytics) for details) will result in equilibrium breaking around pivotal values, as one would expect.
+
+As for [The AMM game](#the-amm-game), we wanted to verify that the altruistic **Coordinator** indeed maximized collective welfare.
+To make sure of this, we used the `manualStrategy` defined in [The AMM game](#the-amm-game-1) subsection, and intentionally fed **Coordinator** a list of swaps that doesn't maximize the collective welfare. This indeed results in a deviation for **Coordinator** which consists in reordering the transaction list. this is verifyable by calling `mainAMMManual` in [Interactive execution](#interactive-execution) mode.

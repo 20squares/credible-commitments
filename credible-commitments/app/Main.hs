@@ -37,13 +37,13 @@ mainPD = do
 ------
 
 mainAMM = do
-  putStrLn "Run parameterized analytics for AMM game - max utility"
+  putStrLn "Coordinator maximizing global welfare - equilibrium strategy"
   mainAMMMaxUtility
-  putStrLn "Run parameterized analytics for AMM game - manual utility"
+  putStrLn "Coordinator maximizing global welfare - tx order immutable, equilibrium checking expected to fail."
   mainAMMManual
-  putStrLn "Identify the pair of fees giving equilibrium"
+  putStrLn "Greedy coordinator - Identify the pair of fees giving equilibrium"
   print idFee
-  putStrLn "Show output for these fees"
+  putStrLn "Greedy coordinator - Show output for these fees"
   mapM_ mainAMMGreedy idFee
 
 
