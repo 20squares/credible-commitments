@@ -180,7 +180,9 @@ Regarding the variations over prisoner's dilemma, thanks to the high quality of 
 
 For the AMM case, we had to be a bit more careful: In particular, we assumed that the fee a player pays to **Coordinator** is taken irrespective of the outcome of the transaction: That is, even if the transaction reverts, the fee is paid anyway. As usual, we model **Alice** and **Bob** as rational, just willing to maximize their payoff. To take slippage into account, we passed a 'real' `exchangeRate` as an [exogenous parameter](#exogenous-parameters): This represents the 'real world' conversion rate between the couple of tokens we consider. In the beginning, the AMM is initialized so that the tokens in the pool reflect this rate. As things progress, the rate given in the AMM *slips* from the real world one.
 
-Ad for the AMM architecture itself, we resorted to a very simple [constant function AMM](https://en.wikipedia.org/wiki/Constant_function_market_maker).
+Furthermore, we fixed the transaction type for both **Alice** and **Bob**. This means that both players are forced to make a very precise swap, and have agency only on how much fees they want to pay.
+
+As for the AMM architecture itself, we resorted to a very simple [constant function AMM](https://en.wikipedia.org/wiki/Constant_function_market_maker).
 
 
 # Code deep dive
