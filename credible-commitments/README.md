@@ -675,7 +675,7 @@ maxUtilityStrategy endowment = Kleisli
         in playDeterministically $ chooseMaximalUtility)
 ```
 
-Furthermore, we provide a 'manual strategy', where we feed **Coordinator** a pre-made transaction ordering. This ordering may very well not result in an equilibrium. This manual strategy will be used to do manual fee search, see [Results](#results) for details.
+Furthermore, we provide a 'manual strategy', where we feed **Coordinator** a pre-made transaction ordering. This ordering may very well not result in an equilibrium. This manual strategy will be used to do [Sanity checks](#sanity-checks).
 
 ```haskell
 -- Provide manual strategy input for exploration
