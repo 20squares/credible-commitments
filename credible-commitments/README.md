@@ -468,7 +468,7 @@ strategyTupleDefect = defectStrategy ::- defectStrategy ::- Nil
 
 ### Prisoner's dilemma with a commitment device
 
-For [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device), the commitment device itself is fed as a strategic choice. We choose to fed the function:
+For [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device), the commitment function is itself fed as a strategic choice. We choose to fed the function:
 
 ```haskell
 -- 2. Commitment
