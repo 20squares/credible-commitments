@@ -448,7 +448,7 @@ All the prisoner's dilemma strategies are defined in `PD/Strategies.hs`. All the
 
 ### Vanilla prisoner's dilemma
 
-As for prisoner's dilemma, the strategies we employed are the following. For [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma),
+For [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma), the strategies we employed are the following:
 
 ```haskell
 cooperateStrategy :: Kleisli Stochastic () ActionPD
