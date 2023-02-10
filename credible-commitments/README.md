@@ -36,6 +36,7 @@
         - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator-1)
         - [The AMM game](#the-amm-game-1)
     - [Running the analytics](#running-the-analytics)
+    - [Results](#results)
     - [Sanity checks](#sanity-checks)
 # Summary
 
@@ -53,6 +54,9 @@ We verified that everything that was supposed to be an equilibrium is indeed an 
 
 Essentially, everything worked as expected, and we can say with certainty that the game-theoretic research we were tasked to model is formally sound.
 
+As for [The AMM game](#the-amm-game), 
+- We verified that with a greedy coordinator users have an incentive to pay fees to frontrun each other. We also found some optimal fees.
+- We verified that with a coordinator working to maximize global welfare trying to bribe the coordinator does not make sense, and that the coordinator will reorder the AMM transactions to reduce global slippage.
 
 # Installation
 
@@ -130,7 +134,7 @@ these errors hint at missing GCC libraries, which will have to be installed inde
 Here we give a more detailed explanation of what our model does.
 
 ## Recap: credible commitments
-Our model is based on Xin's research on [Credible commitments](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). The model comprises a bunch of different games, each one being expanded into the next one:
+Our model is based on Xin's research on [credible commitments](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). The model comprises a bunch of different games, each one being expanded into the next one:
 
 
 ### Vanilla prisoner's dilemma
@@ -158,16 +162,16 @@ As before, we combine the extortion game with a traditional prisoner's dilemma g
 
 To conclude our iterations over prisoner's dilemma, we implemented a version with **Coordinator**. This game is like in the previous point, with the difference that the roles of **Alice** and **Bob** are not anymore fixed in advance. There is a third player, called **Coordinator**, that decides which player between **Alice** and **Bob** gets to use the commitment device. Both players can pay **Coordinator** a bribe in order to get picked for this task. Coordinator just wants to maximize the amount of money it receives. As being able to set the commitment device results in a strategic advantage (the player committing gets the power to extort money from the other one), we expect that the best strategy for both **Alice** and **Bob** consists in trying to outbid each other (frontrunning).
 
-These simple games model quite well the stages through which one goes from vanilla non-cooperative games to full flagged MEV: The presence of a commitment device first results in a more positive outcome, as it makes Nash equilibrium and Paretian optimum coincide. Afterwards, the commitment device can be weaponized into an exploitative device. Finally, in the last game, we see how in the presennce of **Coordinator** familiar MEV strategies such as *frontrunning* arise naturally. So, paradoxically we are back to square one, as the game turns yet again into a non-cooperative one.
+These simple games model quite well the stages through which one goes from vanilla non-cooperative games to full flagged MEV: The presence of a commitment device first results in a more positive outcome, as it makes Nash equilibrium and Paretian optimum coincide. Afterwards, the commitment device can be weaponized into an exploitative device. Finally, in the last game, we see how in the presence of **Coordinator** familiar MEV strategies such as *frontrunning* arise naturally. So, paradoxically we are back to square one, as the game turns yet again into a non-cooperative one.
 
 
 ## The AMM game
 
 As a next step, we wanted to implement the previous considerations into a more 'real-life' model. Moreover, we wanted to explore first-hand notions of *price of anarchy*, which can be loosely defined as 'the price premium paid for the lack of organization'.
 
-To model this, we imagined the following situation: There is an automatic market maker and **Alice** and **Bob** want to use it to swap funds. Moreover, **Coordinator** receives the transactions from both player and can reorder them at will. We came up with two different scenarios:
-- In the first one, **Alice** and **Bob** want to swap in the same direction (say, token1 for token2). In this setup the player that gets in the block first benefits the most, as the next transaction will be impacted by the price slippage caused by the first. As usual, **Coordinator** just wants to maximize its payoff, and the game is in essence very similar to [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator): Both **Alice** and **Bob** have an interest in frontrunning each other.
-- In the second scenario, we set **Coordinator**'s payoff to simply be the sum of **Alice** and **Bob**'s payoffs, with any fee ignored. So in this case **Coordinator** is completely 'selfless' and benefits the most when the players benefit the most. We give both **Alice** and **Bob** a *list* of possibly *contrasting* transactions: **Alice** wants to perform a bunch of swaps from token1 to token2 or vice-versa, and so does **Bob**. By default, we make all the transactions from token1 to token2, from both players, come in first. The result is a huge slippage. We verify that the equilibrium strategy for **Coordinator** is just rearranging transactions in a 'sandwitched' way, to counter slippage as much as possible. In this case does not make any sense to pay a fee since this would decrease **Alice** and **Bob**'s payoffs, and then **Coordinator**'s payoff too by definition.
+To model this, we imagined the following situation: There is an automatic market maker and **Alice** and **Bob** want to use it to swap funds in the same direction (say, token1 for token2). Moreover, **Coordinator** receives the transactions from both players and can reorder them at will. We came up with two different scenarios:
+- In the first one, **Coordinator** just wants to maximize its payoff. In this setup the player that gets in the block first benefits the most, as the next transaction will be impacted by the price slippage caused by the first. This game is in essence very similar to [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator): Both **Alice** and **Bob** have an interest in frontrunning each other.
+- In the second scenario, we set **Coordinator**'s payoff to simply be the sum of **Alice** and **Bob**'s payoffs, with any fee ignored. So in this case **Coordinator** is completely 'selfless' and benefits the most when the players benefit the most. We verify that the equilibrium strategy for **Coordinator** is just rearranging transactions so to counter slippage as much as possible. In this case does not make any sense to pay a fee since this would decrease **Alice** and **Bob**'s payoffs, and then **Coordinator**'s payoff too by definition.
 
     This latter scenario exemplifies well the idea of *price of anarchy*: Leaving the transaction order as they are results in a much poorer outcome for all players if this is compared with the outcome resulting from the optimal ordering. This difference is what we indeed call 'price of anarchy'.
 
@@ -176,7 +180,9 @@ Regarding the variations over prisoner's dilemma, thanks to the high quality of 
 
 For the AMM case, we had to be a bit more careful: In particular, we assumed that the fee a player pays to **Coordinator** is taken irrespective of the outcome of the transaction: That is, even if the transaction reverts, the fee is paid anyway. As usual, we model **Alice** and **Bob** as rational, just willing to maximize their payoff. To take slippage into account, we passed a 'real' `exchangeRate` as an [exogenous parameter](#exogenous-parameters): This represents the 'real world' conversion rate between the couple of tokens we consider. In the beginning, the AMM is initialized so that the tokens in the pool reflect this rate. As things progress, the rate given in the AMM *slips* from the real world one.
 
-Ad for the AMM architecture itself, we resorted to a very simple [constant function AMM](https://en.wikipedia.org/wiki/Constant_function_market_maker).
+Furthermore, we fixed the transaction type for both **Alice** and **Bob**. This means that both players are forced to make a very precise swap, and have agency only on how much fees they want to pay.
+
+As for the AMM architecture itself, we resorted to a very simple [constant function AMM](https://en.wikipedia.org/wiki/Constant_function_market_maker).
 
 
 # Code deep dive
@@ -442,7 +448,7 @@ All the prisoner's dilemma strategies are defined in `PD/Strategies.hs`. All the
 
 ### Vanilla prisoner's dilemma
 
-As for prisoner's dilemma, the strategies we employed are the following. For [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma),
+For [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma), the strategies we employed are the following:
 
 ```haskell
 cooperateStrategy :: Kleisli Stochastic () ActionPD
@@ -462,7 +468,7 @@ strategyTupleDefect = defectStrategy ::- defectStrategy ::- Nil
 
 ### Prisoner's dilemma with a commitment device
 
-For [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device), the commitment device itself is fed as a strategic choice. We choose to fed the function:
+For [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device), the commitment function is itself fed as a strategic choice. We choose to fed the function:
 
 ```haskell
 -- 2. Commitment
@@ -591,7 +597,7 @@ strategyTupleCoordinator =
 
 ### The AMM game
 
-In [The AMM game](#the-amm-game), we define the following strategies, defining the basic type of swap transaction, the fee to be paid to **Coordinator**, and finally **Coordinator** strategy. 
+In [The AMM game](#the-amm-game), we define the following strategies, defining the basic type of swap transaction and the fee to be paid to **Coordinator**: 
 
 
 ```haskell
@@ -612,27 +618,107 @@ strategyFee
           (ContractState, SwapTransaction)
           Fee
 strategyFee fee = pureAction fee
+```
 
+The **Coordinator** strategy is more involved. We define two different kinds of strategies: In the first, **Coordinator** is greedy and just wants to maximize its own utility, given by the fees paid by the players. In the second one, **Coordinator** is altruistic, and chooses the ordering that maximizes the summ of both player's payoffs.
+
+Clearly, these two strategies will result in equilibria for *different* **Coordinator**'s payoffs (these are defined in `Payoffs.hs`, see [File structure](#file-structure) for more information).
+
+
+```haskell
+-----------------------
 -- Strategy coordinator
+-----------------------
+
+-- Maximize fee received by players
 maxFeeStrategy
   :: Kleisli
        Stochastic
-          (MapTransactions, ContractState)
-          MapTransactions
+          (TransactionsLS, ContractState)
+          TransactionsLS
 maxFeeStrategy = Kleisli
- (\observation -> playDeterministically $ chooseMaximalFee $ actionSpaceCoordinator observation)
- where
-    chooseMaximalFee :: [MapTransactions] -> MapTransactions
-    chooseMaximalFee lsOfMaps =
-      fst $ maximumBy (comparing snd) [(x, snd . head . M.toList $ x)| x <- lsOfMaps]
+ (\observation ->
+    let ls = chooseMaximalFee $ transformLs $ actionSpaceCoordinator observation
+        in if length ls == 1
+              then playDeterministically $ fst $ head ls -- ^ if only one element, play deterministically
+              else uniformDist $ fmap fst ls)            -- ^ if several elements, randomize uniformly
 
--- Complete tuple
-strategyTupleMaxFee swap1 swap2 fee1 fee2  = 
+-- Transform into pair of (fee,tx)
+transformLs :: [[(PlayerID,Transaction)]] -> [(TransactionsLS, Fee)] 
+transformLs ls = [(x, snd . snd . head $ x)| x <- ls]
+
+
+-- Filter the list by the maximum elements
+chooseMaximalFee
+  :: [(TransactionsLS, Fee)] -> [(TransactionsLS, Fee)]
+chooseMaximalFee ls =
+  filter  (\(_,x) -> x == findMaximalElement ls) ls
+  where
+    findMaximalElement :: [(TransactionsLS, Fee)] -> Fee
+    findMaximalElement ls = snd $ maximumBy (comparing snd) ls
+
+-- Maximize utility of players
+maxUtilityStrategy
+  :: MapPlayerEndowment
+  -> Kleisli
+       Stochastic
+          (TransactionsLS, ContractState)
+          TransactionsLS
+maxUtilityStrategy endowment = Kleisli
+ (\observation -> 
+    let actionLS  = actionSpaceCoordinator observation
+        contractState     = snd observation
+        actionLS' = [(contractState,txs)| txs <- actionLS]
+        results   = [(contractState,endowment, txs, mapSwapsWithAmounts (txs,state))| (state,txs) <- actionLS']
+        utilityLS = [(txs, computePayoffPlayerMap contractState (endowment,txs,resultsTXs))| (state,endowment, txs, resultsTXs) <- results]
+        chooseMaximalUtility = fst $ maximumBy (comparing snd) [(txs, M.foldr (+) 0 $ utility)| (txs,utility) <- utilityLS]
+        in playDeterministically $ chooseMaximalUtility)
+```
+
+Furthermore, we provide a 'manual strategy', where we feed **Coordinator** a pre-made transaction ordering. This ordering may very well not result in an equilibrium. This manual strategy will be used to do [Sanity checks](#sanity-checks).
+
+```haskell
+-- Provide manual strategy input for exploration
+manualStrategy
+  :: TransactionsLS 
+  -> MapPlayerEndowment
+  -> Kleisli
+       Stochastic
+          (TransactionsLS, ContractState)
+          TransactionsLS
+manualStrategy ls _ =
+  pureAction ls
+```
+
+As usual, the single strategies are packed into strategy tuples:
+
+
+```haskell
+-- Composing strategy tuple max fee
+strategyTupleMaxFee swap1 swap2 fee1 fee2  =
   strategySwap swap1        -- Player 1 swap tx
-  ::- strategyFee fee1     -- Player 1 coinbase.transfer
+  ::- strategyFee fee1      -- Player 1 coinbase.transfer
   ::- strategySwap swap2    -- Player 2 swap tx
   ::- strategyFee fee2      -- Player 2 coinbase.transfer
   ::- maxFeeStrategy        -- Coordinator strategy
+  ::- Nil
+
+-- Composing strategy tuple max utility
+strategyTupleMaxUtility swap1 swap2 fee1 fee2 endowmentMap =
+  strategySwap swap1                   -- Player 1 swap tx
+  ::- strategyFee fee1                 -- Player 1 coinbase.transfer
+  ::- strategySwap swap2               -- Player 2 swap tx
+  ::- strategyFee fee2                 -- Player 2 coinbase.transfer
+  ::- maxUtilityStrategy endowmentMap  -- Coordinator strategy
+  ::- Nil
+
+-- Composing strategy tuple max utility
+strategyTupleManualCoordinator swap1 swap2 fee1 fee2 endowmentMap ls =
+  strategySwap swap1                   -- Player 1 swap tx
+  ::- strategyFee fee1                 -- Player 1 coinbase.transfer
+  ::- strategySwap swap2               -- Player 2 swap tx
+  ::- strategyFee fee2                 -- Player 2 coinbase.transfer
+  ::- manualStrategy ls endowmentMap  -- Coordinator strategy
   ::- Nil
 ```
 
@@ -650,7 +736,49 @@ In particular, calling the function `main` in interactive mode will result in th
 
 ## Results
 
-The summary of our results can be found right at the top of this document, at the subsection [analytics results](#analytics-results). There wasn't much more than this to say, basically the equilibrium of every game was the one Xin already calculated.
+The summary of our results can be found right at the top of this document, at the subsection [analytics results](#analytics-results). 
+
+In the prisoner's dilemma case there wasn't much to say: basically the equilibrium for every game was the one that Xin already calculated.
+
+As for the AMM, things were more complicated. As we mentioned in [Strategies employed in the analysis](#strategies-employed-in-the-analysis), we endowed **Coordinator** with two different kinds of utility functions, and this greatly influenced equilibria.
+
+- On one hand, **Coordinator** can be greedy. This means that the utility function will look at the fees paid and will try to maximize them. As a consequence, the best strategy for both players is to bet high to frontrun each other. This begs the question: How much should players pay to frontrun each other? We provided an example of this by instanting the game with the following parameters, to be found in `Parameters.hs` (see [File structure](#file-structure) for more information):
+
+    ```haskell
+    testParametersGreedy = Parameters
+    (100,100)                                 -- Initial AMM exchange rate
+    player1                                   -- Alice
+    player2                                   -- Bob
+    50                                        -- Max coinbase.transfer for Coordinator
+    actionSpace1                              -- Action space available for player1
+    actionSpace2                              -- Action space available for player2
+    computePayoffCoordinatorMaxFee            -- Coordinator's goal function: maximizes fees
+    testEndowments                            -- Initial player endowments
+    ```
+
+    Again, in the same file we defined a test strategy as follows: 
+
+    ```haskell
+    testStrategiesGreedy fee1 fee2 = strategyTupleMaxFee (Swap0 50) (Swap0 40) fee1 fee2
+    ```
+
+    Here we see that we hardcoded the fact that the first player wants to swap $50$ tokens, while the second wants to swap $40$. So players in this game are *forced* to swap those precise amounts of tokens. The direction of the swap is the same for both players. 
+    
+    
+    In `Main.hs` we implemented the function `mainAMMGreedyFindEqFee` that takes two fees as input and tells us if these result in a equilibrium or not. This can be tested in [Interactive execution](#interactive-execution) mode by giving:
+    
+    ```haskell
+    mainAMMGreedyFindEqFee (fee1, fee2)
+    ```
+
+    where `fee1` and `fee2` are numbers (`Double`).    
+    Moreover, we also implemented the function `idFee` which searches over the space of possible fees and prints the pairs resulting in equilibrium. Again, this can be tested in [Interactive execution](#interactive-execution) mode. This function is also automatically run in `main`, as one can see by running `stack run`. So we see that, having hardcoded some initial parameters, `idFee` finds what are the optimal fees that players should pay to **Coordinator**.
+    We found that the couples `(13,13)` and `(14,14)` result in equilibria.
+
+- On the other hand, we covered the case of an altruistic **Coordinator**. In this case, **Coordinator**'s payoff is taken to be the sum of the utilities of both players, so the more players are collectively gaining, the more **Coordinator** gains. 
+We verified that in this setup the optimal strategy for players is not paying any fees: This makes sense as **Coordinator** simply discards them, so paying fee would just result in a lower payoff for everyone.
+We verified that the equilibrium is obtained when **Coordinator** orders the transactions to *collectively* minimize both player's payoffs. 
+
 
 ### Sanity checks
 
@@ -679,3 +807,6 @@ $$ \pi_2 (\mathtt{Cooperate},\mathtt{Cooperate}) - n \leq \pi_2(\mathtt{Defect},
 where $\pi_2$ is the projection on the second component. That is, **Bob**'s incentive to cooperate in a context of extortion vanishes if the extorted value results in a total payoff that is *less* than what he would get by defecting.
 
 This sort of sanity checks can be performed by editing the values in the payoff matrix and `n` (hardcoded to be $1$ in the source code) as one pleases. Recompiling and runnning the analytics (see [Installation](#installation) and [Running the analytics](#running-the-analytics) for details) will result in equilibrium breaking around pivotal values, as one would expect.
+
+As for [The AMM game](#the-amm-game), we wanted to verify that the altruistic **Coordinator** indeed maximized collective welfare.
+To make sure of this, we used the `manualStrategy` defined in [The AMM game](#the-amm-game-1) subsection, and intentionally fed **Coordinator** a list of swaps that doesn't maximize the collective welfare. This indeed results in a deviation for **Coordinator** which consists in reordering the transaction list. this is verifyable by calling `mainAMMManual` in [Interactive execution](#interactive-execution) mode.
