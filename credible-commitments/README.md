@@ -54,6 +54,9 @@ We verified that everything that was supposed to be an equilibrium is indeed an 
 
 Essentially, everything worked as expected, and we can say with certainty that the game-theoretic research we were tasked to model is formally sound.
 
+As for the AMM case, 
+- We verified that with a greedy coordinator users have an incentive to pay fees to frontrun each other. We also found some optimal fees.
+- We verified that with a coordinator working to maximize global welfare trying to bribe the coordinator does not make sense, and that the coordinator will reorder the AMM transactions to reduce global slippage.
 
 # Installation
 
