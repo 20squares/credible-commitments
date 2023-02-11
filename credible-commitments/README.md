@@ -553,12 +553,7 @@ In [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator
 
 -- NOTE: simplified assumption regarding bidding
 biddingStrategy :: Kleisli Stochastic () Double
-biddingStrategy = pureAction 2
-
-biddingStrategyZero :: Kleisli Stochastic () Double
-biddingStrategyZero = pureAction 0
-
-
+biddingStrategy = pureAction 1
 
 -- Strategy for the first player to commit
 -- NOTE we are feeding the information for first player and second player name identifiers forward
