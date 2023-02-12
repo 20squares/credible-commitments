@@ -40,7 +40,7 @@
     - [Sanity checks](#sanity-checks)
 # Summary
 
-In this FRP we focused on modelling some of the thoughts experiments around prisoner's dilemma with credible commitments as detailed in [Xin's research](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). We then generalized these experiments to a more tangible case involving frontrunning and swaps in a *automatic market maker (AMM)*.
+In this FRP we focused on modelling some of the thought experiments around prisoner's dilemma with credible commitments as detailed in [Xin's research](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). We then generalized these experiments to a more tangible case involving frontrunning and swaps in an *automatic market maker (AMM)*.
 
 ## Analytics results
 
@@ -131,7 +131,7 @@ these errors hint at missing GCC libraries, which will have to be installed inde
 
 # Explaining the model
 
-Here we give a more detailed explanation of what our model does.
+Here, we give a more detailed explanation of what our model does.
 
 ## Recap: credible commitments
 Our model is based on Xin's research on [credible commitments](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). The model comprises a bunch of different games, each one being expanded into the next one:
@@ -144,7 +144,7 @@ First of all, we implemented a very basic [prisoner's dilemma](https://en.wikipe
 
 ### Prisoner's dilemma with a commitment device
 
-The next game is prisoner's dilemma with a *committment device*: Essentially, this is a version of prisoner's dilemma where **Alice**'s strategic choice is replaced by an [exogenous](#exogenous-parameters) function, which we call `commitment`. The idea is simple: **Alice**'s strategy now consists in supplying a commitment which announces beforehand how she intends to respond to **Bob**'s choice. In the case we are most interested in, **Alice**'s strategy consists in supplying a function which will result in `Cooperate` if **Bob**'s choice is `Cooperate`, and `Defect` if **Bob**'s choice is **Defect**. We expect that in this scenarios the Nash equilibrium shifts towards **Bob** playing `Cooperate`.
+The next game is prisoner's dilemma with a *commitment device*: Essentially, this is a version of prisoner's dilemma where **Alice**'s strategic choice is replaced by an [exogenous](#exogenous-parameters) function, which we call `commitment`. The idea is simple: **Alice**'s strategy now consists in supplying a commitment which announces beforehand how she intends to respond to **Bob**'s choice. In the case we are most interested in, **Alice**'s strategy consists in supplying a function which will result in `Cooperate` if **Bob**'s choice is `Cooperate`, and `Defect` if **Bob**'s choice is **Defect**. We expect that in this scenarios the Nash equilibrium shifts towards **Bob** playing `Cooperate`.
 
 
 ### Prisoner's dilemma with branching
@@ -154,15 +154,15 @@ We then merged [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma) and [Pri
 
 ### Prisoner's dilemma with extortion
 
-Afterwards, we generalized the situation further into a game where the commitment device is turned into an *extortion device*. The game works as usual prisoner's dilemma with commitment, with the difference that now **Alice**, in order to play **Cooperate** which would result into a better outcome for **Bob**, also requires the payment of a bribe. So **Bob** must now choose between cooperating and being extorted, or defecting.
+Afterwards, we generalized the situation further into a game where the commitment device is turned into an *extortion device*. The game works as the  prisoner's dilemma with commitment, with the difference that now **Alice**, in order to play **Cooperate** which would result into a better outcome for **Bob**, also requires the payment of a bribe. So **Bob** must now choose between cooperating and being extorted, or defecting.
 As before, we combine the extortion game with a traditional prisoner's dilemma game using branching. Here, we expect that the Nash equilibrium consists in **Alice** choosing to use the extortion device, and **Bob** paying the bribe up to some value, beyond which choosing to play `Defect` results into a profitable deviation.
 
 
 ### Prisoner's dilemma with a coordinator
 
-To conclude our iterations over prisoner's dilemma, we implemented a version with **Coordinator**. This game is like in the previous point, with the difference that the roles of **Alice** and **Bob** are not anymore fixed in advance. There is a third player, called **Coordinator**, that decides which player between **Alice** and **Bob** gets to use the commitment device. Both players can pay **Coordinator** a bribe in order to get picked for this task. Coordinator just wants to maximize the amount of money it receives. As being able to set the commitment device results in a strategic advantage (the player committing gets the power to extort money from the other one), we expect that the best strategy for both **Alice** and **Bob** consists in trying to outbid each other (frontrunning).
+To conclude our iterations over prisoner's dilemma, we implemented a version with **Coordinator**. This game is like in the previous point, with the difference that the roles of **Alice** and **Bob** are not anymore fixed in advance. There is a third player, called **Coordinator**, who decides which player between **Alice** and **Bob** gets to use the commitment device. Both players can pay **Coordinator** a bribe in order to get picked for this task. Coordinator just wants to maximize the amount of money it receives. As being able to set the commitment device results in a strategic advantage (the player committing gets the power to extort money from the other one), we expect that the best strategy for both **Alice** and **Bob** consists in trying to outbid each other (frontrunning).
 
-These simple games model quite well the stages through which one goes from vanilla non-cooperative games to full flagged MEV: The presence of a commitment device first results in a more positive outcome, as it makes Nash equilibrium and Paretian optimum coincide. Afterwards, the commitment device can be weaponized into an exploitative device. Finally, in the last game, we see how in the presence of **Coordinator** familiar MEV strategies such as *frontrunning* arise naturally. So, paradoxically we are back to square one, as the game turns yet again into a non-cooperative one.
+These simple games model quite well the stages through which one goes from vanilla non-cooperative games to full flagged MEV: The presence of a commitment device first results in a more positive outcome, as it makes Nash equilibrium and the social welfare optimum coincide. Afterwards, the commitment device can be weaponized into an exploitative device. Finally, in the last game, we see how in the presence of the **Coordinator** familiar MEV strategies such as *frontrunning* arise naturally. So, paradoxically we are back to square one, as the last games produces outcomes for the players akin to the ones they began with.
 
 
 ## The AMM game
@@ -171,9 +171,9 @@ As a next step, we wanted to implement the previous considerations into a more '
 
 To model this, we imagined the following situation: There is an automatic market maker and **Alice** and **Bob** want to use it to swap funds in the same direction (say, token1 for token2). Moreover, **Coordinator** receives the transactions from both players and can reorder them at will. We came up with two different scenarios:
 - In the first one, **Coordinator** just wants to maximize its payoff. In this setup the player that gets in the block first benefits the most, as the next transaction will be impacted by the price slippage caused by the first. This game is in essence very similar to [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator): Both **Alice** and **Bob** have an interest in frontrunning each other.
-- In the second scenario, we set **Coordinator**'s payoff to simply be the sum of **Alice** and **Bob**'s payoffs, with any fee ignored. So in this case **Coordinator** is completely 'selfless' and benefits the most when the players benefit the most. We verify that the equilibrium strategy for **Coordinator** is just rearranging transactions so to counter slippage as much as possible. In this case does not make any sense to pay a fee since this would decrease **Alice** and **Bob**'s payoffs, and then **Coordinator**'s payoff too by definition.
+- In the second scenario, we set **Coordinator**'s payoff to simply be the sum of **Alice** and **Bob**'s payoffs, with any fee ignored. So in this case **Coordinator** is completely 'selfless' and benefits the most when the players benefit the most. We verify that the equilibrium strategy for **Coordinator** is just rearranging transactions so to counter slippage as much as possible. In this case, it does not make any sense to pay a fee since this would decrease **Alice** and **Bob**'s payoffs and not increase the **Coordinator's** payoff.
 
-    This latter scenario exemplifies well the idea of *price of anarchy*: Leaving the transaction order as they are results in a much poorer outcome for all players if this is compared with the outcome resulting from the optimal ordering. This difference is what we indeed call 'price of anarchy'.
+    This latter scenario exemplifies well the idea of *price of anarchy*: Leaving the transaction order as they are results in a much poorer outcome for all players if this is compared with the outcome resulting from the optimal ordering. This difference is what we indeed call the 'price of anarchy'.
 
 ## Assumptions made explicit
 Regarding the variations over prisoner's dilemma, thanks to the high quality of the original research we started from, we were able to implement things 'as is', without having to make anything more explicit than it already was.
@@ -398,7 +398,7 @@ The other folder we provide is `AMM`. Here the file structure is the following:
 
 # Analytics
 
-Now, we switch focus on *analytics*, which we defined as the set of techniques we employ to verify if and when a supplied results in an *equilibrium*. The notion of *equilibrium* we rely upon is the one of [Nash equilibrium](https://en.wikipedia.org/wiki/Nash_equilibrium), which intuitively describes a situation where, for each player, unilaterally deviating from the chosen strategy results in a loss.
+Now, we switch focus on *analytics*, which we defined as the set of techniques we employ to verify if and when a supplied strategies results in an *equilibrium*. The notion of *equilibrium* we rely upon is the one of [Nash equilibrium](https://en.wikipedia.org/wiki/Nash_equilibrium), which intuitively describes a situation where, for each player, unilaterally deviating from the chosen strategy results in a loss.
 
 
 ## Reading the analytics
@@ -804,4 +804,4 @@ where $\pi_2$ is the projection on the second component. That is, **Bob**'s ince
 This sort of sanity checks can be performed by editing the values in the payoff matrix and `n` (hardcoded to be $1$ in the source code) as one pleases. Recompiling and runnning the analytics (see [Installation](#installation) and [Running the analytics](#running-the-analytics) for details) will result in equilibrium breaking around pivotal values, as one would expect.
 
 As for [The AMM game](#the-amm-game), we wanted to verify that the altruistic **Coordinator** indeed maximized collective welfare.
-To make sure of this, we used the `manualStrategy` defined in [The AMM game](#the-amm-game-1) subsection, and intentionally fed **Coordinator** a list of swaps that doesn't maximize the collective welfare. This indeed results in a deviation for **Coordinator** which consists in reordering the transaction list. this is verifyable by calling `mainAMMManual` in [Interactive execution](#interactive-execution) mode.
+To make sure of this, we used the `manualStrategy` defined in [The AMM game](#the-amm-game-1) subsection, and intentionally fed **Coordinator** a list of swaps that doesn't maximize the collective welfare. This indeed results in a deviation for **Coordinator** which consists in reordering the transaction list. this is verifiable by calling `mainAMMManual` in [Interactive execution](#interactive-execution) mode.
