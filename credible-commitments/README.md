@@ -14,6 +14,7 @@
     - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator)
     - [Assumptions made explicit](#assumptions-made-explicit)
     - [The AMM game](#the-amm-game)
+    - [The AMM game with private information](#the-amm-game-with-private-information)
 - [Code deep dive](#code-deep-dive)
     - [Recap: DSL primer](#recap-dsl-primer)
         - [The building blocks](#the-building-blocks)
@@ -35,6 +36,7 @@
         - [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion-1)
         - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator-1)
         - [The AMM game](#the-amm-game-1)
+        - [The AMM game with private information](#the-amm-game-with-private-information-1)
     - [Running the analytics](#running-the-analytics)
     - [Results](#results)
     - [Sanity checks](#sanity-checks)
@@ -174,6 +176,16 @@ To model this, we imagined the following situation: There is an automatic market
 - In the second scenario, we set **Coordinator**'s payoff to simply be the sum of **Alice** and **Bob**'s payoffs, with any fee ignored. So in this case **Coordinator** is completely 'selfless' and benefits the most when the players benefit the most. We verify that the equilibrium strategy for **Coordinator** is just rearranging transactions so to counter slippage as much as possible. In this case, it does not make any sense to pay a fee since this would decrease **Alice** and **Bob**'s payoffs and not increase the **Coordinator's** payoff.
 
     This latter scenario exemplifies well the idea of *price of anarchy*: Leaving the transaction order as they are results in a much poorer outcome for all players if this is compared with the outcome resulting from the optimal ordering. This difference is what we indeed call the 'price of anarchy'.
+
+
+## The AMM game with private information
+
+We implemented this variation on a separate branch, called `private-information`. In the previous AMM game, transactions submitted by the players had no *intrinsic utility*. Players were forced to submit their transactions, and the incentive in frontrunning other players came only from the fact that a better slippage would result in a smaller loss.
+
+In this variation of the game, we endow players with *private information*: Namely, a `Double` expressing how important is for the player that their transaction is first in the block. This value is added to the players' payoffs if and only they successfully frontrun other players. This represents, indeed, the added utility coming from frontrunning.
+
+The players are considered to be *uncorrelated*. This means that players' private values are independent of each other.
+
 
 ## Assumptions made explicit
 Regarding the variations over prisoner's dilemma, thanks to the high quality of the original research we started from, we were able to implement things 'as is', without having to make anything more explicit than it already was.
@@ -361,7 +373,7 @@ In this game the best strategy is clearly (A,A1). Nevertheless, we need to suppl
 
 ## File structure
 
-The model is composed of several files, all stored in the `main` branch:
+The model is composed of several files, stored in two branches. In the main `main` branch:
 
 - The `app` folder contains `Main.hs`, where the `main` function is defined. This is the function executed when one gives `stack run` (cf. [Running the analytics](#running-the-analytics)).
 - The `pics` folder exists only for the purpose of this documentation file.
@@ -395,6 +407,7 @@ The other folder we provide is `AMM`. Here the file structure is the following:
 - `Payoffs.hs` defines the payoff functions, both for players and **Coordinator**.
 -  `Types.hs` defines the types of many of the things we use in our model, such as AMM state, payoff types etc.
 
+The `private-information` branch is just built on the `main` branch. The only difference is that the AMM case is now suitably modified to accomodate for players having private information. File structure is unchanged.
 
 # Analytics
 
@@ -717,6 +730,18 @@ strategyTupleManualCoordinator swap1 swap2 fee1 fee2 endowmentMap ls =
   ::- Nil
 ```
 
+
+## The AMM game with private information
+
+In this case the strategic variations are minimal. We just initialized the game parameters with the following probability distributions:
+
+```haskell
+privateValues1 = distFromList [(0,0.8),(10,0.2)]
+privateValues2 = distFromList [(0,0.4),(6,0.2),(30,0.4)]
+```
+
+
+
 ## Running the analytics
 
 As already stressed in [Evaluating strategies](#evaluating-strategies), there are two main ways to run strategies. In the [Normal execution](#normal-execution) mode, one just needs to give the command `stack run`. This command will execute a pre-defined battery of strategies using the parameters predefined in the source code. These parameters can be varied as one pleses. Once this is done and the edits are saved, `stack run` will automatically recompile the code and run the simulation with the new parameter set.
@@ -773,6 +798,8 @@ As for the AMM, things were more complicated. As we mentioned in [Strategies emp
 - On the other hand, we covered the case of an altruistic **Coordinator**. In this case, **Coordinator**'s payoff is taken to be the sum of the utilities of both players, so the more players are collectively gaining, the more **Coordinator** gains. 
 We verified that in this setup the optimal strategy for players is not paying any fees: This makes sense as **Coordinator** simply discards them, so paying fee would just result in a lower payoff for everyone.
 We verified that the equilibrium is obtained when **Coordinator** orders the transactions to *collectively* minimize both player's payoffs. 
+
+- Finally, in the case of private information, the altruistic **Coordinator** will only maximize the expected utility *ex-ante*: In simple words, **Coordinator** does not have access to the player's private information, so can only maximize the 'visible portion' of players payoffs. As such, we showed that picking the 'best transaction order' as in the previous case does not result anymore in a equilibrium, exactly because the 'true' welfare is unknown to **Coordinator**, which essentially 'has to guess'.
 
 
 ### Sanity checks
