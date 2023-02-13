@@ -31,6 +31,7 @@ computePayoffCoordinatorMaxPlayerUtility (ls,mapUtility) =
       in (sumUtility, (playerID, -fee))
 
 -- Compute Utility Map for all players in denomination of the first currency
+-- NOTE: we add the utility of receiving the desired priority 
 computePayoffPlayerMap
   :: ContractState
      -> (MapPlayerEndowment
@@ -66,6 +67,8 @@ updateBalance contractState (swapTransaction,_) (result,_,_) privateValue (endow
 projectPlayerPayoff name utilityMap = utilityMap M.! name
 
 -- Add private value if first tx happens to be first
+addPrivateValue
+  :: (Num b1, Eq t) => t -> [(t, b2)] -> [(t, b1)] -> b1
 addPrivateValue playerName lsTransactions lsPrivateValues =
   if position == 1
      then privateValue

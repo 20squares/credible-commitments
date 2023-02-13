@@ -11,6 +11,8 @@ import Data.List (maximumBy)
 import qualified Data.Map.Strict as M
 import Data.Ord (comparing)
 
+import Numeric.Probability.Distribution (expected)
+
 {-
 Defines concrete strategies
 -}
@@ -33,7 +35,7 @@ strategyFee
   :: Fee
      -> Kleisli
           Stochastic
-          (ContractState, SwapTransaction, PrivateValue) 
+          (ContractState, SwapTransaction, PrivateValue)
           Fee
 strategyFee fee = pureAction fee
 
@@ -55,7 +57,7 @@ maxFeeStrategy = Kleisli
               else uniformDist $ fmap fst ls)            -- ^ if several elements, randomize uniformly
 
 -- Transform into pair of (fee,tx)
-transformLs :: [[(PlayerID,Transaction)]] -> [(TransactionsLS, Fee)] 
+transformLs :: [[(PlayerID,Transaction)]] -> [(TransactionsLS, Fee)]
 transformLs ls = [(x, snd . snd . head $ x)| x <- ls]
 
 
@@ -70,18 +72,20 @@ chooseMaximalFee ls =
 
 -- Maximize utility of players
 maxUtilityStrategy
-  :: MapPlayerEndowment
+  :: Parameters
   -> Kleisli
        Stochastic
           (TransactionsLS, ContractState)
           TransactionsLS
-maxUtilityStrategy endowment = Kleisli
+maxUtilityStrategy Parameters{..} = Kleisli
  (\observation -> 
     let actionLS  = actionSpaceCoordinator observation
         contractState     = snd observation
         actionLS' = [(contractState,txs)| txs <- actionLS]
-        results   = [(contractState,endowment, txs, mapSwapsWithAmounts (txs,state))| (state,txs) <- actionLS']
-        utilityLS = [(txs, computePayoffPlayerMap contractState (endowment,txs,resultsTXs,[("player1",0),("player2",0)]))| (state,endowment, txs, resultsTXs) <- results] -- FIXME
+        results   = [(contractState,mapEndowments, txs, mapSwapsWithAmounts (txs,state))| (state,txs) <- actionLS']
+        expectedValue1 = expected privateValueDistribution1
+        expectedValue2 = expected privateValueDistribution2
+        utilityLS = [(txs, computePayoffPlayerMap contractState (mapEndowments,txs,resultsTXs,[("player1",expectedValue1),("player2",expectedValue2)]))| (state,mapEndowments, txs, resultsTXs) <- results] 
         chooseMaximalUtility = fst $ maximumBy (comparing snd) [(txs, M.foldr (+) 0 $ utility)| (txs,utility) <- utilityLS]
         in playDeterministically $ chooseMaximalUtility)
 
@@ -106,12 +110,12 @@ strategyTupleMaxFee swap1 swap2 fee1 fee2  =
   ::- Nil
 
 -- Composing strategy tuple max utility
-strategyTupleMaxUtility swap1 swap2 fee1 fee2 endowmentMap =
-  strategySwap swap1                   -- Player 1 swap tx
-  ::- strategyFee fee1                 -- Player 1 coinbase.transfer
-  ::- strategySwap swap2               -- Player 2 swap tx
-  ::- strategyFee fee2                 -- Player 2 coinbase.transfer
-  ::- maxUtilityStrategy endowmentMap  -- Coordinator strategy
+strategyTupleMaxUtility swap1 swap2 fee1 fee2 par =
+  strategySwap swap1          -- Player 1 swap tx
+  ::- strategyFee fee1        -- Player 1 coinbase.transfer
+  ::- strategySwap swap2      -- Player 2 swap tx
+  ::- strategyFee fee2        -- Player 2 coinbase.transfer
+  ::- maxUtilityStrategy par  -- Coordinator strategy
   ::- Nil
 
 -- Composing strategy tuple max utility

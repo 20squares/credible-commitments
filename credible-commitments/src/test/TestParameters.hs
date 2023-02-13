@@ -20,6 +20,17 @@ endowment1 = (100,100)
 
 mapEndowments1 = M.fromList [(player1,contractState1),(player2,contractState1)]
 
+-- privateValues
+privateValue1,privateValue2 :: PrivateValue
+privateValue1 = 0
+privateValue2 = 20
+lsPrivateValues1 = [(player1,privateValue1),(player2,privateValue1)]
+lsPrivateValues2 = [(player1,privateValue1),(player2,privateValue2)]
+lsPrivateValues3 = [(player1,privateValue2),(player2,privateValue2)]
+
+
+
+
 -- Transaction data
 transaction0,transaction1,transaction2,transaction3,transaction4 :: Transaction
 transaction0 = ((Swap0 100),10)
@@ -69,3 +80,18 @@ utility6 = 116
 
 mapUtility1 = M.fromList [(player1,utility1),(player2,utility5)]
 mapUtility2 = M.fromList [(player1,utility4),(player2,utility6)]
+
+-- With private values
+utilityWPrivateValue1,utilityWPrivateValue2,utilityWPrivateValue3,utilityWPrivateValue4,utilityWPrivateValue5, utilityWPrivateValue6 :: Double
+utilityWPrivateValue1 = 194 + privateValue2
+utilityWPrivateValue2 = 156.5 + privateValue2
+utilityWPrivateValue3 = 74.5 + privateValue2
+utilityWPrivateValue4 = 149 + privateValue2
+utilityWPrivateValue5 = 187.5 + privateValue2
+utilityWPrivateValue6 = 116 + privateValue2
+
+
+mapUtilityWPrivateValue1 = M.fromList [(player1,utility1),(player2,utility5)]
+mapUtilityWPrivateValue2 = M.fromList [(player1,utilityWPrivateValue4),(player2,utility6)]
+
+

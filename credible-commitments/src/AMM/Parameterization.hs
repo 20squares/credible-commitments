@@ -24,7 +24,7 @@ actionSpace1 = [Swap0 50]
 actionSpace2 = [Swap0 40]
 
 privateValues1 = distFromList [(0,0.8),(10,0.2)]
-privateValues2 = distFromList [(0,0.6),(6,0.2),(10,0.2)]
+privateValues2 = distFromList [(0,0.4),(6,0.2),(30,0.4)]
 
 player1 = "player1"
 player2 = "player2"
@@ -33,7 +33,7 @@ testEndowments = M.fromList [(player1,(50,50)),(player2,(50,50))]
 
 testStrategiesGreedy fee1 fee2 = strategyTupleMaxFee (Swap0 50) (Swap0 40) fee1 fee2
 
-testStrategiesMaxUtility = strategyTupleMaxUtility (Swap0 50) (Swap0 40) 0 0 testEndowments
+testStrategiesMaxUtility = strategyTupleMaxUtility (Swap0 50) (Swap0 40) 0 0 testParametersMaxUtility
 
 testStrategiesManual = strategyTupleManualCoordinator (Swap0 50) (Swap0 40) 0 0 testEndowments [("player1",(Swap0 50.0,0.0)),("player2",(Swap0 40.0,0.0))]
 

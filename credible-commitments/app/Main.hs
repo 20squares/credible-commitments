@@ -57,7 +57,7 @@ mainAMMGreedy (fee1,fee2) = do
   putStrLn $ "With following fees" ++ (show (fee1,fee2))
   printOutputCompleteGame (testStrategiesGreedy fee1 fee2) testParametersGreedy
 
-mainAMMMaxUtility = printEquilibriumCompleteGame testStrategiesMaxUtility testParametersMaxUtility
+mainAMMMaxUtility = printOutputCompleteGame testStrategiesMaxUtility testParametersMaxUtility
 
-mainAMMManual = printEquilibriumCompleteGame testStrategiesManual testParametersMaxUtility
+mainAMMManual = printOutputCompleteGame testStrategiesManual testParametersMaxUtility
 
