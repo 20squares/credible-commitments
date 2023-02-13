@@ -16,30 +16,30 @@ Provides the complete open game
 -}
 
 
-completeGame exchangeRate name1 name2 upperBound goalFunctionCoordinator actionSpaceTXs1 actionSpaceTXs2 = [opengame|
+completeGame exchangeRate name1 name2 upperBound goalFunctionCoordinator actionSpaceTXs1 actionSpaceTXs2 privateValueDistribution1 privateValueDistribution2 = [opengame|
   inputs: mapEndowments, state ;
   feedback: ;
 
   :------:
   inputs : state ;
-  operation : players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2;
-  outputs : transactionsSubmitted;
+  operation : players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2 privateValueDistribution1 privateValueDistribution2;
+  outputs : transactionsSubmitted, lsPrivateValues;
   returns : ;
 
   inputs : transactionsSubmitted, state ;
   operation : coordinator ;
-  outputs : mapTransactionOrdered;
+  outputs : lsTransactionOrdered;
   returns : payoffCoordinator;
 
-  inputs : mapTransactionOrdered, state ;
+  inputs : lsTransactionOrdered, state ;
   operation : amm ;
-  outputs : mapResults;
+  outputs : lsResults;
 
-  inputs : mapEndowments, mapTransactionOrdered, mapResults ;
+  inputs : mapEndowments, lsTransactionOrdered, lsResults, lsPrivateValues ;
   operation : payoffsCoordinator exchangeRate goalFunctionCoordinator ;
   outputs : payoffCoordinator ;
 
-  inputs : mapEndowments, mapTransactionOrdered, mapResults ;
+  inputs : mapEndowments, lsTransactionOrdered, lsResults, lsPrivateValues ;
   operation : payoffPlayers exchangeRate name1 name2 ;
 
   :------:

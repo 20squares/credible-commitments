@@ -17,6 +17,8 @@ type ExchangeRate = Double
 
 type Utility = Double
 
+type PrivateValue = Double
+
 type Fee = Double
 
 type Endowment = (Double, Double)
@@ -48,6 +50,8 @@ type EndowmentLS = [(PlayerID,Endowment)]
 type MapPlayerUtility = M.Map PlayerID Utility
 type UtilityLS = [(PlayerID,Utility)]
 
+type PrivateValuesLS = [(PlayerID,PrivateValue)]
+
 data Parameters = Parameters
   { exchangeRate :: ContractState
   , name1        :: Agent
@@ -55,6 +59,8 @@ data Parameters = Parameters
   , upperBound   :: Double
   , actionSpaceTXs1 :: [SwapTransaction]
   , actionSpaceTXs2 :: [SwapTransaction]
+  , privateValueDistribution1 :: Stochastic PrivateValue
+  , privateValueDistribution2 :: Stochastic PrivateValue
   , goalFunctionCoordinator :: (TransactionResultsLS, MapPlayerUtility) -> (CoordinatorPayoff, (PlayerID,Fee))
   , mapEndowments :: MapPlayerEndowment
   } 

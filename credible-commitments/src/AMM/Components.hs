@@ -36,19 +36,24 @@ TODO
 -- NOTE: We assume for now that the builder is not including own transactions
 
 -- Single player chooses which transaction to send to coordinator and with what fee
-chooseTransactionAndFee name upperBound actionSpaceTXs =
+chooseTransactionAndFee name upperBound actionSpaceTXs privateValueDistribution=
   [opengame|
   inputs: state ;
   feedback: ;
 
   :------:
 
+  inputs :   ;
+  operation : nature privateValueDistribution ;
+  outputs : priorityValue ;
+  returns :  ;
+
   inputs :  state ;
   operation : dependentDecision name $ const $ actionSpaceTXs ;
   outputs : tx;
   returns : 0 ;
 
-  inputs : state, tx ;
+  inputs : state, tx, priorityValue ;
   operation : dependentDecision name $ const $ actionSpaceFee upperBound ;
   outputs : fee;
   returns : 0 ;
@@ -58,13 +63,13 @@ chooseTransactionAndFee name upperBound actionSpaceTXs =
   outputs : txWithFee ;
 
   :------:
-  outputs : txWithFee ;
+  outputs : txWithFee, priorityValue ;
   returns : ;
 
 |]
 
 -- Two players choose their transactions and fee
-players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2 =
+players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2  privateValueDistribution1 privateValueDistribution2 =
   [opengame|
   inputs: state ;
   feedback: ;
@@ -72,19 +77,23 @@ players name1 name2 upperBound actionSpaceTXs1 actionSpaceTXs2 =
   :------:
 
   inputs :  state ;
-  operation : chooseTransactionAndFee name1 upperBound actionSpaceTXs1 ;
-  outputs : txWithFee1;
+  operation : chooseTransactionAndFee name1 upperBound actionSpaceTXs1 privateValueDistribution1  ;
+  outputs : txWithFee1,priorityValue1;
 
   inputs :  state ;
-  operation : chooseTransactionAndFee name2 upperBound actionSpaceTXs2 ;
-  outputs : txWithFee2;
+  operation : chooseTransactionAndFee name2 upperBound actionSpaceTXs2 privateValueDistribution2;
+  outputs : txWithFee2, priorityValue2;
 
   inputs : txWithFee1, txWithFee2 ;
-  operation : forwardFunction $  combineTXIntoList name1 name2; 
+  operation : forwardFunction $  combineTXIntoList name1 name2;
   outputs : transactionsSubmitted ;
 
+  inputs : priorityValue1, priorityValue2 ;
+  operation : forwardFunction $  combinePrivateValuesIntoList name1 name2;
+  outputs : privateValuesLs ;
+
   :------:
-  outputs : transactionsSubmitted ;
+  outputs : transactionsSubmitted, privateValuesLs ;
   returns : ;
 
 |]
@@ -125,12 +134,12 @@ amm  = [opengame|
 
 -- Payoffs for coordinator
 payoffsCoordinator exchangeRate goalFunction = [opengame|
-  inputs:  mapEndowments, lsTransactions,lsResults ;
+  inputs:  mapEndowments, lsTransactions,lsResults, privateValuesLs ;
   feedback: ;
 
   :------:
 
-  inputs : mapEndowments, lsTransactions, lsResults ;
+  inputs : mapEndowments, lsTransactions, lsResults, privateValuesLs ;
   operation : forwardFunction $ computePayoffPlayerMap exchangeRate;
   outputs : utilityMap ;
   // Repeat component here for localizing the information
@@ -174,12 +183,12 @@ payoffSinglePlayer name = [opengame|
 
 -- Payoffs for all players 
 payoffPlayers exchangeRate name1 name2 = [opengame|
-  inputs:  mapEndowments, mapTransactions, mapResults;
+  inputs:  mapEndowments, mapTransactions, mapResults, privateValuesLs;
   feedback: ;
 
   :------:
 
-  inputs : mapEndowments, mapTransactions, mapResults ;
+  inputs : mapEndowments, mapTransactions, mapResults, privateValuesLs ;
   operation : forwardFunction $ computePayoffPlayerMap exchangeRate;
   outputs : utilityMap ;
 

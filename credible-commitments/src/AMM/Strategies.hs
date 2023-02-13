@@ -33,7 +33,7 @@ strategyFee
   :: Fee
      -> Kleisli
           Stochastic
-          (ContractState, SwapTransaction)
+          (ContractState, SwapTransaction, PrivateValue) 
           Fee
 strategyFee fee = pureAction fee
 
@@ -81,7 +81,7 @@ maxUtilityStrategy endowment = Kleisli
         contractState     = snd observation
         actionLS' = [(contractState,txs)| txs <- actionLS]
         results   = [(contractState,endowment, txs, mapSwapsWithAmounts (txs,state))| (state,txs) <- actionLS']
-        utilityLS = [(txs, computePayoffPlayerMap contractState (endowment,txs,resultsTXs))| (state,endowment, txs, resultsTXs) <- results]
+        utilityLS = [(txs, computePayoffPlayerMap contractState (endowment,txs,resultsTXs,[("player1",0),("player2",0)]))| (state,endowment, txs, resultsTXs) <- results] -- FIXME
         chooseMaximalUtility = fst $ maximumBy (comparing snd) [(txs, M.foldr (+) 0 $ utility)| (txs,utility) <- utilityLS]
         in playDeterministically $ chooseMaximalUtility)
 

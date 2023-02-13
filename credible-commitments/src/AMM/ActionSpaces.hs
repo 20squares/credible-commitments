@@ -26,3 +26,5 @@ actionSpaceCoordinator (lsTransactions, _ ) = permutations lsTransactions
 -- Combine two transactions into a list of transactions
 combineTXIntoList name1 name2 (tx1,tx2) = [(name1,tx1),(name2,tx2)]
 
+-- Combine two private valuations into a list of transactions
+combinePrivateValuesIntoList name1 name2 (value1,value2) = [(name1,value1),(name2,value2)]

@@ -3,6 +3,8 @@
 
 module AMM.Parameterization where
 
+import OpenGames.Engine.Engine
+
 import AMM.Payoffs
 import AMM.Strategies
 import AMM.Types
@@ -20,6 +22,9 @@ Instantiates the parameters used in the game
 -- Define action space for choosing a tx
 actionSpace1 = [Swap0 50]
 actionSpace2 = [Swap0 40]
+
+privateValues1 = distFromList [(0,0.8),(10,0.2)]
+privateValues2 = distFromList [(0,0.6),(6,0.2),(10,0.2)]
 
 player1 = "player1"
 player2 = "player2"
@@ -39,6 +44,8 @@ testParametersGreedy = Parameters
   50                                        -- Max coinbase.transfer for Coordinator
   actionSpace1                              -- Action space available for player1
   actionSpace2                              -- Action space available for player2
+  privateValues1                            -- Value distribution for player1
+  privateValues2                            -- Value distribution for player2
   computePayoffCoordinatorMaxFee            -- Coordinator's goal function: maximizes fees
   testEndowments                            -- Initial player endowments
 
@@ -50,5 +57,7 @@ testParametersMaxUtility = Parameters
   50                                        -- Max coinbase.transfer for Coordinator
   actionSpace1                              -- Action space available for player1
   actionSpace2                              -- Action space available for player2
+  privateValues1                            -- Value distribution for player1
+  privateValues2                            -- Value distribution for player2
   computePayoffCoordinatorMaxPlayerUtility  -- Coordinator's goal function: maximize sum of players' utility
   testEndowments                            -- Initial player endowments

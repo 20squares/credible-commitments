@@ -35,30 +35,46 @@ computePayoffPlayerMap
   :: ContractState
      -> (MapPlayerEndowment
         ,TransactionsLS
-        ,TransactionResultsLS)
+        ,TransactionResultsLS
+        ,PrivateValuesLS)
      -> MapPlayerUtility
-computePayoffPlayerMap contractState (mapEndowments, lsTransactions ,lsResults) =
-  let updatePayoffSinglePlayer k =
-        let findTX = snd $ head $ filter (\(name,tx) -> name == k) lsTransactions
-            findResults = snd $ head $ filter (\(name,result) -> name == k) lsResults
-            in updateBalance contractState findTX findResults
+computePayoffPlayerMap contractState (mapEndowments, lsTransactions ,lsResults, lsPrivateValues) =
+  let updatePayoffSinglePlayer playerName =
+        let findTX = snd $ head $ filter (\(name,tx) -> name == playerName) lsTransactions
+            findResults = snd $ head $ filter (\(name,result) -> name == playerName) lsResults
+            privateValue = addPrivateValue playerName lsTransactions lsPrivateValues
+            in updateBalance contractState findTX  findResults privateValue
                 in M.mapWithKey updatePayoffSinglePlayer mapEndowments
 
 -- Update individual balance and evaluate in terms of first currency
-updateBalance contractState (swapTransaction,_) (result,_,_) (endowment0,endowment1) =
+updateBalance contractState (swapTransaction,_) (result,_,_) privateValue (endowment0,endowment1)  =
   let newBalance =
         case swapTransaction of
           Swap0 sent0 ->
             case result of
-              Swap0Out received0 -> (endowment0 - sent0 + received0, endowment1) -- ^ case should not happen
-              Swap1Out received1 -> (endowment0 - sent0, endowment1 + received1)
+              Swap0Out received0 -> (endowment0 - sent0 + received0 + privateValue, endowment1) -- ^ case should not happen
+              Swap1Out received1 -> (endowment0 - sent0 + privateValue, endowment1 + received1)
           Swap1 sent1 ->
             case result of
-              Swap0Out received0 -> (endowment0 + received0, endowment1 - sent1)
-              Swap1Out received1 -> (endowment0, endowment1 - sent1 + received1)  -- ^ case should not happen
+              Swap0Out received0 -> (endowment0 + received0 + privateValue, endowment1 - sent1)
+              Swap1Out received1 -> (endowment0 + privateValue, endowment1 - sent1 + received1)  -- ^ case should not happen
         in  denominateInFirstCurrency contractState newBalance
   where
     denominateInFirstCurrency contractState (x1,x2) = x1 + x2 * (snd contractState / fst contractState)
 
 -- Project out payoffs for two players
 projectPlayerPayoff name utilityMap = utilityMap M.! name
+
+-- Add private value if first tx happens to be first
+addPrivateValue playerName lsTransactions lsPrivateValues =
+  if position == 1
+     then privateValue
+     else 0
+  where privateValue = snd $ head $ filter (\(name,tx) -> name == playerName) lsPrivateValues
+        position = findValue lsTransactions playerName
+        findValue [] _ = 0
+        findValue ((name,_):xs) playerName =
+          if name == playerName
+            then 1
+            else 1 + findValue xs playerName
+

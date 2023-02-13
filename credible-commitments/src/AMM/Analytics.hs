@@ -15,7 +15,7 @@ Defines concrete strategies
 -- 1. Equilibrium notion
 ------------------------
 -- | Equilibrium definition for complete game
-equilibriumCompleteGame strategy Parameters{..} = evaluate (completeGame exchangeRate name1 name2 upperBound goalFunctionCoordinator actionSpaceTXs1 actionSpaceTXs2) strategy context
+equilibriumCompleteGame strategy Parameters{..} = evaluate (completeGame exchangeRate name1 name2 upperBound goalFunctionCoordinator actionSpaceTXs1 actionSpaceTXs2 privateValueDistribution1 privateValueDistribution2) strategy context
   where
     context =
       StochasticStatefulContext
