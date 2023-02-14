@@ -373,7 +373,7 @@ In this game the best strategy is clearly (A,A1). Nevertheless, we need to suppl
 
 ## File structure
 
-The model is composed of several files, stored in two branches. In the main `main` branch:
+The model is composed of several files, stored in two branches. In the `main` branch:
 
 - The `app` folder contains `Main.hs`, where the `main` function is defined. This is the function executed when one gives `stack run` (cf. [Running the analytics](#running-the-analytics)).
 - The `pics` folder exists only for the purpose of this documentation file.
@@ -407,7 +407,7 @@ The other folder we provide is `AMM`. Here the file structure is the following:
 - `Payoffs.hs` defines the payoff functions, both for players and **Coordinator**.
 -  `Types.hs` defines the types of many of the things we use in our model, such as AMM state, payoff types etc.
 
-The `private-information` branch is just built on the `main` branch. The only difference is that the AMM case is now suitably modified to accomodate for players having private information. File structure is unchanged.
+The other branch, called `private-information`, is just built on top of the `main` branch. It implements a variation of [The AMM game](#the-amm-game) game case that is suitably modified to accomodate for players having private information. File structure is unchanged.
 
 # Analytics
 
