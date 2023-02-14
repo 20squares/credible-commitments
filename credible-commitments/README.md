@@ -182,7 +182,7 @@ To model this, we imagined the following situation: There is an automatic market
 
 We implemented this variation on a separate branch, called `private-information`. In the previous AMM game, transactions submitted by the players had no *intrinsic utility*. Players were forced to submit their transactions, and the incentive in frontrunning other players came only from the fact that a better slippage would result in a smaller loss.
 
-In this variation of the game, we endow players with *private information*: Namely, a `Double` expressing how important is for the player that their transaction is first in the block. This value is added to the players' payoffs if and only they successfully frontrun other players. This represents, indeed, the added utility coming from frontrunning.
+In this variation of the game, we endow players with *private information*: Namely, a number of type`Double` expressing how important it is for the player that their transaction is first in the block. This value is added to the players' payoffs if and only they get included first. This represents, indeed, the added utility coming from successful frontrunning.
 
 The players are considered to be *uncorrelated*. This means that players' private values are independent of each other.
 
@@ -740,6 +740,7 @@ privateValues1 = distFromList [(0,0.8),(10,0.2)]
 privateValues2 = distFromList [(0,0.4),(6,0.2),(30,0.4)]
 ```
 
+As remarked in [The AMM game with private information](#the-amm-game-with-private-information-1), private information is held to be of type `Double`. The strategies are nevertheless initialized as probability distributions: This information is used to perform a *nature draw* (see [Basic operations](#basic-operations) for details) which draws a value from the distribution. The main reason to do so is that we do not know a priory which kind of player will utilize the AMM, even if the private information each player has is deterministic.
 
 
 ## Running the analytics
@@ -799,7 +800,7 @@ As for the AMM, things were more complicated. As we mentioned in [Strategies emp
 We verified that in this setup the optimal strategy for players is not paying any fees: This makes sense as **Coordinator** simply discards them, so paying fee would just result in a lower payoff for everyone.
 We verified that the equilibrium is obtained when **Coordinator** orders the transactions to *collectively* minimize both player's payoffs. 
 
-- Finally, in the case of private information, the altruistic **Coordinator** will only maximize the expected utility *ex-ante*: In simple words, **Coordinator** does not have access to the player's private information, so can only maximize the 'visible portion' of players payoffs. As such, we showed that picking the 'best transaction order' as in the previous case does not result anymore in a equilibrium, exactly because the 'true' welfare is unknown to **Coordinator**, which essentially 'has to guess'.
+- Finally, in the case of private information, the altruistic **Coordinator** will only maximize the expected utility *ex-ante*: In simple words, **Coordinator** does not have access to the player's private information, so it can only maximize the 'visible portion' of players payoffs. We showed that picking the 'best transaction order' as in the previous case does not result anymore in a equilibrium, exactly because the 'true' welfare is unknown to **Coordinator**, which essentially 'has to guess'.
 
 
 ### Sanity checks
