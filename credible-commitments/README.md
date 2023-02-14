@@ -59,6 +59,8 @@ Essentially, everything worked as expected, and we can say with certainty that t
 As for [The AMM game](#the-amm-game), 
 - We verified that with a greedy coordinator users have an incentive to pay fees to frontrun each other. We also found some optimal fees.
 - We verified that with a coordinator working to maximize global welfare trying to bribe the coordinator does not make sense, and that the coordinator will reorder the AMM transactions to reduce global slippage.
+- We verified that in the presence of players' private information, as in [The AMM with private information](#the-amm-game-with-private-information) game, the old equilibrium for the welfare-maximizing coordinator breaks down.
+
 
 # Installation
 
