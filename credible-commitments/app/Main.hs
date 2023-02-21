@@ -21,7 +21,7 @@ main = do
 mainPD = do
   putStrLn "1. Vanilla prioner's dilemma"
   isEquilibriumPrisonersDilemma strategyTupleDefect
-  putStrLn "2. PRisoner's dilemma with a commitment device"
+  putStrLn "2. Prisoner's dilemma with a commitment device"
   isEquilibriumPrisonersDilemmaCommitment conditionalCooperate bobStrategyCooperate
   putStrLn "3. Prisoner's dilemma with branching"
   isEquilibriumPrisonersDilemmaAliceChoice conditionalCooperate strategyTupleCommit
