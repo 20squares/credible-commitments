@@ -40,6 +40,7 @@ conditionalCooperateTransfer (action,transfer) =
      then Cooperate
      else Defect
 
+
 -- Bob strategy
 bobStrategyCooperate = cooperateStrategy ::- Nil
 
@@ -57,6 +58,28 @@ transferStrategy =
     (\case
        Cooperate -> (playDeterministically 1)
        Defect    -> (playDeterministically 0)
+    )
+
+
+-- 2.1 Bribe size customizable
+
+-- Alice chooses to commit
+aliceStrategyBribe :: Kleisli Stochastic () Double
+aliceStrategyBribe = pureAction 1.0
+
+-- Commitment strategy with transfer, Alice can choose bribe size
+conditionalCooperateTransferBribe (action,transfer,bribe) =
+  if action == Cooperate && transfer >= bribe
+     then Cooperate
+     else Defect
+
+-- Bob transfer strategy, has to match Alice's bribe
+transferStrategyBribe :: Kleisli Stochastic (ActionPD,Double) Double
+transferStrategyBribe =
+  Kleisli $
+    (\case
+       (Cooperate,bribe) -> (playDeterministically bribe)
+       (Defect,bribe)    -> (playDeterministically 0)
     )
 
 -- 3. Coordinator game
@@ -100,6 +123,16 @@ strategyTupleCommitTransfer =
   aliceStrategyCommit     -- ^ which game does Alice choose?
   ::- cooperateStrategy   -- ^ if in the commitment game which action does Bob choose?
   ::- transferStrategy -- ^ if in the commitment game which transfer does Bob choose?
+  ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
+  ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
+  ::- Nil
+
+-- Aggregating into full strategy for commitment + transfer
+strategyTupleCommitTransferBribe =
+  aliceStrategyCommit     -- ^ which game does Alice choose?
+  ::- aliceStrategyBribe  -- ^ if in the commitment game how much does Alice set the bribe?
+  ::- cooperateStrategy   -- ^ if in the commitment game which action does Bob choose?
+  ::- transferStrategyBribe -- ^ if in the commitment game which transfer does Bob choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil

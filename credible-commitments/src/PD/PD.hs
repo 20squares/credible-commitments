@@ -220,3 +220,83 @@ prisonersDilemmaAliceChoiceTransfer aliceCommitment = [opengame|
    returns   :      ;
   |]
 
+
+-- 2.2.1 Prisoner's dilemma with commitment device _plus_ additional transfer by Bob
+-- NOTE There are other options - explore this if of interest
+prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
+
+   inputs    :      ;
+   feedback  :      ;
+
+   :----------------------------:
+
+   inputs    : ;
+   feedback  :      ;
+   operation : dependentDecision "Alice" (const [0,1,2,3]);
+   outputs   : decisionAliceBribe ;
+   returns   : payoffAlice;
+
+   inputs    :      ;
+   feedback  :      ;
+   operation : dependentDecision "Bob" (const [Cooperate,Defect]);
+   outputs   : decisionBobCooperate ;
+   returns   : payoffBob - decisionBobTransfer;
+   
+
+   inputs    : decisionBobCooperate, decisionAliceBribe;
+   feedback  :      ;
+   operation : dependentDecision "Bob" (const [0,1,2,3]);
+   outputs   : decisionBobTransfer ;
+   returns   : payoffBob - decisionBobTransfer;
+   // Bob's strategy is conditional on his cooperate decision before
+
+
+   inputs    : (decisionBobCooperate,decisionBobTransfer,decisionAliceBribe) ;
+   feedback  :      ;
+   operation : forwardFunction $ aliceCommitment ;
+   outputs   : decisionAlice ;
+   returns   : ;
+   // Alice's strategic choice is substituted by a computation
+
+   inputs    : decisionAlice, decisionBobCooperate ;
+   feedback  : ;
+   operation : forwardFunction $ uncurry $ prisonersDilemmaMatrix ;
+   outputs   : (payoffAlice,payoffBob);
+   returns   : ;
+
+   :----------------------------:
+
+   outputs   :      ;
+   returns   :      ;
+  |]
+
+
+-- combined branching game
+-- NOTE this is a branching game; only one of the possible branches will be played
+branchingGameTransferBribe aliceCommitment = (prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment) +++ prisonersDilemmaGame
+
+prisonersDilemmaAliceChoiceTransferBribe aliceCommitment = [opengame|
+
+   inputs    :      ;
+   feedback  :      ;
+
+   :----------------------------:
+   inputs    :      ;
+   feedback  :      ;
+   operation : dependentDecision "Alice" (const [commitmentChoice,pdChoice]);
+   outputs   : gameDecisionAlice ;
+   returns   : 0 ;
+
+   inputs    : gameDecisionAlice ;
+   feedback  :      ;
+   operation : branchingGameTransferBribe aliceCommitment;
+   outputs   : discard;
+   returns   : ;
+   // discard the output
+
+   :----------------------------:
+
+   outputs   :      ;
+   returns   :      ;
+  |]
+

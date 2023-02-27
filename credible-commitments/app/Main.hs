@@ -3,7 +3,7 @@ module Main (main) where
 import AMM.Analytics
 import AMM.Parameterization
 import PD.Analytics
-import PD.Coordinator
+-- import PD.Coordinator
 import PD.PD
 import PD.Strategies
 
@@ -27,6 +27,8 @@ mainPD = do
   isEquilibriumPrisonersDilemmaAliceChoice conditionalCooperate strategyTupleCommit
   putStrLn "4. Prisoner's dilemma with extortion"
   isEquilibriumPrisonersDilemmaAliceChoiceTransfer conditionalCooperateTransfer strategyTupleCommitTransfer
+  putStrLn "4. Prisoner's dilemma with extortion, bribe settable"
+  isEquilibriumPrisonersDilemmaAliceChoiceTransferBribe conditionalCooperateTransferBribe strategyTupleCommitTransferBribe
   putStrLn "5. Prisoner's dilemma with a coordinator"
   isEquilibriumPrisonersDilemmaCoordinator conditionalCooperateTransfer strategyTupleCoordinator
 
