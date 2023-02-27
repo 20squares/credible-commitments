@@ -31,7 +31,7 @@ data ActionPD = Cooperate | Defect
 
 -- | Payoff matrix for player i given i's action and j's action
 prisonersDilemmaMatrix :: ActionPD -> ActionPD -> (Payoff,Payoff)
-prisonersDilemmaMatrix Cooperate Cooperate   = (2,2)
+prisonersDilemmaMatrix Cooperate Cooperate   = (3,3)
 prisonersDilemmaMatrix Cooperate Defect  = (0,3)
 prisonersDilemmaMatrix Defect Cooperate  = (3,0)
 prisonersDilemmaMatrix Defect Defect = (1,1)
@@ -221,7 +221,7 @@ prisonersDilemmaAliceChoiceTransfer aliceCommitment = [opengame|
   |]
 
 
--- 2.2.1 Prisoner's dilemma with commitment device _plus_ additional transfer by Bob
+-- 2.2.1 Prisoner's dilemma with commitment device _plus_ additional transfer by Bob, bribe customizable
 -- NOTE There are other options - explore this if of interest
 prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
 
@@ -234,7 +234,7 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
    feedback  :      ;
    operation : dependentDecision "Alice" (const [0,1,2,3]);
    outputs   : decisionAliceBribe ;
-   returns   : payoffAlice;
+   returns   : payoffAlice + decisionBobTransfer;
 
    inputs    :      ;
    feedback  :      ;
@@ -263,6 +263,13 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
    operation : forwardFunction $ uncurry $ prisonersDilemmaMatrix ;
    outputs   : (payoffAlice,payoffBob);
    returns   : ;
+
+   inputs    : payoffAlice  ;
+   feedback  : ;
+   operation : addPayoffs "Alice" ;
+   outputs   : ;
+   returns   : ;
+   // We are doing book-keeping for Alice in case we want to embedd that game into a larger component
 
    :----------------------------:
 

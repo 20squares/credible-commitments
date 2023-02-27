@@ -63,11 +63,11 @@ transferStrategy =
 
 -- 2.1 Bribe size customizable
 
--- Alice chooses to commit
+-- Alice chooses how high she wants to set the bribe 
 aliceStrategyBribe :: Kleisli Stochastic () Double
 aliceStrategyBribe = pureAction 1.0
 
--- Commitment strategy with transfer, Alice can choose bribe size
+-- Commitment strategy with transfer, bribe size customizable
 conditionalCooperateTransferBribe (action,transfer,bribe) =
   if action == Cooperate && transfer >= bribe
      then Cooperate
@@ -127,10 +127,10 @@ strategyTupleCommitTransfer =
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil
 
--- Aggregating into full strategy for commitment + transfer
+-- Aggregating into full strategy for commitment + transfer with bribe customizable
 strategyTupleCommitTransferBribe =
   aliceStrategyCommit     -- ^ which game does Alice choose?
-  ::- aliceStrategyBribe  -- ^ if in the commitment game how much does Alice set the bribe?
+  ::- aliceStrategyBribe  -- ^ if in the commitment game how high does Alice set the bribe?
   ::- cooperateStrategy   -- ^ if in the commitment game which action does Bob choose?
   ::- transferStrategyBribe -- ^ if in the commitment game which transfer does Bob choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
