@@ -65,7 +65,7 @@ transferStrategy =
 
 -- Alice chooses how high she wants to set the bribe 
 aliceStrategyBribe :: Kleisli Stochastic () Double
-aliceStrategyBribe = pureAction 1.0
+aliceStrategyBribe = pureAction 1
 
 -- Commitment strategy with transfer, bribe size customizable
 conditionalCooperateTransferBribe (action,transfer,bribe) =
@@ -79,7 +79,7 @@ transferStrategyBribe =
   Kleisli $
     (\case
        (Cooperate,bribe) -> (playDeterministically bribe)
-       (Defect,bribe)    -> (playDeterministically 0)
+       (Defect,_)    -> (playDeterministically 0)
     )
 
 -- 3. Coordinator game

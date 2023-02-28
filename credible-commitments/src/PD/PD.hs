@@ -31,7 +31,7 @@ data ActionPD = Cooperate | Defect
 
 -- | Payoff matrix for player i given i's action and j's action
 prisonersDilemmaMatrix :: ActionPD -> ActionPD -> (Payoff,Payoff)
-prisonersDilemmaMatrix Cooperate Cooperate   = (3,3)
+prisonersDilemmaMatrix Cooperate Cooperate   = (2,2)
 prisonersDilemmaMatrix Cooperate Defect  = (0,3)
 prisonersDilemmaMatrix Defect Cooperate  = (3,0)
 prisonersDilemmaMatrix Defect Defect = (1,1)
@@ -245,7 +245,7 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
 
    inputs    : decisionBobCooperate, decisionAliceBribe;
    feedback  :      ;
-   operation : dependentDecision "Bob" (const [0,1,2,3]);
+   operation : dependentDecision "Bob" (const [0,1,2,3,4,5]);
    outputs   : decisionBobTransfer ;
    returns   : payoffBob - decisionBobTransfer;
    // Bob's strategy is conditional on his cooperate decision before
@@ -264,11 +264,7 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
    outputs   : (payoffAlice,payoffBob);
    returns   : ;
 
-   inputs    : payoffAlice  ;
-   feedback  : ;
-   operation : addPayoffs "Alice" ;
-   outputs   : ;
-   returns   : ;
+
    // We are doing book-keeping for Alice in case we want to embedd that game into a larger component
 
    :----------------------------:
