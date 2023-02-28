@@ -65,12 +65,12 @@ transferStrategy =
 
 -- Commitment strategy with transfer
 
--- | Exhogenous Payoff matrix for player i given i's action and j's action
-prisonersDilemmaMatrixExhogenous :: ActionPD -> ActionPD -> (Payoff,Payoff)
-prisonersDilemmaMatrixExhogenous Cooperate Cooperate   = (3,3)
-prisonersDilemmaMatrixExhogenous Cooperate Defect  = (0,3)
-prisonersDilemmaMatrixExhogenous Defect Cooperate  = (3,0)
-prisonersDilemmaMatrixExhogenous Defect Defect = (1,1)
+-- | Exogenous Payoff matrix for player i given i's action and j's action
+prisonersDilemmaMatrixExogenous :: Payoff -> Payoff -> ActionPD -> ActionPD -> (Payoff,Payoff)
+prisonersDilemmaMatrixExogenous cooperativeValue defectValue Cooperate Cooperate  = (cooperativeValue,cooperativeValue)
+prisonersDilemmaMatrixExogenous cooperativeValue defectValue Cooperate Defect     = (0,cooperativeValue + defectValue)
+prisonersDilemmaMatrixExogenous cooperativeValue defectValue Defect Cooperate     = (cooperativeValue + defectValue,0)
+prisonersDilemmaMatrixExogenous cooperativeValue defectValue Defect Defect        = (defectValue,defectValue)
 
 conditionalCooperateTransferBribe :: ((ActionPD, Payoff, Double) -> ActionPD)
 conditionalCooperateTransferBribe (action,transfer,bribe) =
@@ -84,15 +84,13 @@ aliceStrategyBribe = pureAction 2
 
 -- Bob observes alice's bribe and takes a decision
 -- (fst (matrix Cooperate Cooperate)) - (fst (matrix Defect Defect)
-bobCooperateConditional :: Kleisli Stochastic (Double, (Payoff, Payoff), (Payoff, Payoff)) ActionPD
+bobCooperateConditional :: Kleisli Stochastic (Double, Payoff, Payoff) ActionPD
 bobCooperateConditional =
   Kleisli $
-    (\case
-      (bribe,coop,def) ->  ( if (bribe) <= fst coop - fst def
-                  then (playDeterministically Cooperate)
-                  else (playDeterministically Defect)
-                )
-    )
+    (\(bribe,coop,def) ->
+       if bribe <= coop - def
+           then (playDeterministically Cooperate)
+           else (playDeterministically Defect))
 
 
 -- Bob transfer strategy, has to match Alice's bribe
@@ -154,7 +152,7 @@ strategyTupleCommitTransferBribe =
   aliceStrategyCommit     -- ^ which game does Alice choose?
   ::- aliceStrategyBribe  -- ^ if in the commitment game how high does Alice set the bribe?
   ::- bobCooperateConditional   -- ^ if in the commitment game which action does Bob choose?
-  ::- transferStrategyBribe -- ^ if in the commitment game which transfer does Bob choose?
+  ::- transferStrategyBribe  -- ^ if in the commitment game which transfer does Bob choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil
