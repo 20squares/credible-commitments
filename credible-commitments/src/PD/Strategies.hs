@@ -63,15 +63,26 @@ transferStrategy =
 
 -- 2.1 Bribe size customizable
 
--- Alice chooses how high she wants to set the bribe 
-aliceStrategyBribe :: Kleisli Stochastic () Double
-aliceStrategyBribe = pureAction 1
-
--- Commitment strategy with transfer, bribe size customizable
+-- Commitment strategy with transfer
 conditionalCooperateTransferBribe (action,transfer,bribe) =
   if action == Cooperate && transfer >= bribe
      then Cooperate
      else Defect
+
+-- Alice chooses how high she wants to set the bribe 
+aliceStrategyBribe :: Kleisli Stochastic () Double
+aliceStrategyBribe = pureAction 2
+
+-- Bob observes alice's bribe and takes a decision
+bobCooperateConditional :: Kleisli Stochastic Double ActionPD
+bobCooperateConditional =
+  Kleisli $
+    (\case
+      bribe ->  ( if (bribe) <= 3-1 
+                  then (playDeterministically Cooperate)
+                  else (playDeterministically Defect)
+                )
+    )
 
 -- Bob transfer strategy, has to match Alice's bribe
 transferStrategyBribe :: Kleisli Stochastic (ActionPD,Double) Double
@@ -131,7 +142,7 @@ strategyTupleCommitTransfer =
 strategyTupleCommitTransferBribe =
   aliceStrategyCommit     -- ^ which game does Alice choose?
   ::- aliceStrategyBribe  -- ^ if in the commitment game how high does Alice set the bribe?
-  ::- cooperateStrategy   -- ^ if in the commitment game which action does Bob choose?
+  ::- bobCooperateConditional   -- ^ if in the commitment game which action does Bob choose?
   ::- transferStrategyBribe -- ^ if in the commitment game which transfer does Bob choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
