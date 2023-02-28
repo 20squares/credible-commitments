@@ -28,7 +28,7 @@ mainPD = do
   putStrLn "4. Prisoner's dilemma with extortion"
   isEquilibriumPrisonersDilemmaAliceChoiceTransfer conditionalCooperateTransfer strategyTupleCommitTransfer
   putStrLn "4. Prisoner's dilemma with extortion, bribe settable"
-  isEquilibriumPrisonersDilemmaAliceChoiceTransferBribe conditionalCooperateTransferBribe strategyTupleCommitTransferBribe
+  -- isEquilibriumPrisonersDilemmaAliceChoiceTransferBribe conditionalCooperateTransferBribe prisonersDilemmaMatrixExhogenous strategyTupleCommitTransferBribe
   putStrLn "5. Prisoner's dilemma with a coordinator"
   isEquilibriumPrisonersDilemmaCoordinator conditionalCooperateTransfer strategyTupleCoordinator
 

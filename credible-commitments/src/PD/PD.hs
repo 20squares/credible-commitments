@@ -36,8 +36,6 @@ prisonersDilemmaMatrix Cooperate Defect  = (0,3)
 prisonersDilemmaMatrix Defect Cooperate  = (3,0)
 prisonersDilemmaMatrix Defect Defect = (1,1)
 
-
-
 --------------------
 -- 2. Representation
 -- 2.0 Prisoner's dilemma
@@ -74,6 +72,39 @@ prisonersDilemmaGame = [opengame|
    returns   :      ;
   |]
 
+-- 2.0.1 Prisoner's dilemma, exhogenous payoff matrix
+-- I'm passing payoff matrix as an exhogenous parameter, useful in 2.2.1.
+prisonersDilemmaGameExhogenous matrix = [opengame|
+
+   inputs    :      ;
+   feedback  :      ;
+
+   :----------------------------:
+   inputs    :      ;
+   feedback  :      ;
+   operation : dependentDecision "Alice" (const [Cooperate,Defect]);
+   outputs   : decisionAlice ;
+   returns   : fst payoffTuple ;
+
+   inputs    :      ;
+   feedback  :      ;
+   operation : dependentDecision "Bob" (const [Cooperate,Defect]);
+   outputs   : decisionBob ;
+   returns   : snd payoffTuple ;
+
+   inputs    : decisionAlice, decisionBob  ;
+   feedback  : ;
+   operation : forwardFunction $ uncurry $ matrix ;
+   outputs   : payoffTuple;
+   returns   : ;
+
+
+
+   :----------------------------:
+
+   outputs   :      ;
+   returns   :      ;
+  |]
 -- 2.1 Prisoner's dilemma with commitment device; modelled as a function
 -- NOTE There are other options - explore this if of interest
 prisonersDilemmaBobUnderCommitment aliceCommitment = [opengame|
@@ -223,7 +254,7 @@ prisonersDilemmaAliceChoiceTransfer aliceCommitment = [opengame|
 
 -- 2.2.1 Prisoner's dilemma with commitment device _plus_ additional transfer by Bob, bribe customizable
 -- NOTE There are other options - explore this if of interest
-prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
+prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment payoffMatrix = [opengame|
 
    inputs    :      ;
    feedback  :      ;
@@ -236,7 +267,7 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
    outputs   : decisionAliceBribe ;
    returns   : payoffAlice + decisionBobTransfer;
 
-   inputs    : decisionAliceBribe;
+   inputs    : decisionAliceBribe, payoffMatrix;
    feedback  :      ;
    operation : dependentDecision "Bob" (const [Cooperate,Defect]);
    outputs   : decisionBobCooperate ;
@@ -260,7 +291,7 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
 
    inputs    : decisionAlice, decisionBobCooperate ;
    feedback  : ;
-   operation : forwardFunction $ uncurry $ prisonersDilemmaMatrix ;
+   operation : forwardFunction $ uncurry $ payoffMatrix ;
    outputs   : (payoffAlice,payoffBob);
    returns   : ;
 
@@ -276,9 +307,9 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment = [opengame|
 
 -- combined branching game
 -- NOTE this is a branching game; only one of the possible branches will be played
-branchingGameTransferBribe aliceCommitment = (prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment) +++ prisonersDilemmaGame
+branchingGameTransferBribe aliceCommitment matrix = (prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment matrix) +++ prisonersDilemmaGameExhogenous matrix
 
-prisonersDilemmaAliceChoiceTransferBribe aliceCommitment = [opengame|
+prisonersDilemmaAliceChoiceTransferBribe aliceCommitment matrix = [opengame|
 
    inputs    :      ;
    feedback  :      ;
@@ -292,7 +323,7 @@ prisonersDilemmaAliceChoiceTransferBribe aliceCommitment = [opengame|
 
    inputs    : gameDecisionAlice ;
    feedback  :      ;
-   operation : branchingGameTransferBribe aliceCommitment;
+   operation : branchingGameTransferBribe aliceCommitment matrix;
    outputs   : discard;
    returns   : ;
    // discard the output

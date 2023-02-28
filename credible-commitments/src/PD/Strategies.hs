@@ -64,6 +64,15 @@ transferStrategy =
 -- 2.1 Bribe size customizable
 
 -- Commitment strategy with transfer
+
+-- | Exhogenous Payoff matrix for player i given i's action and j's action
+prisonersDilemmaMatrixExhogenous :: ActionPD -> ActionPD -> (Payoff,Payoff)
+prisonersDilemmaMatrixExhogenous Cooperate Cooperate   = (3,3)
+prisonersDilemmaMatrixExhogenous Cooperate Defect  = (0,3)
+prisonersDilemmaMatrixExhogenous Defect Cooperate  = (3,0)
+prisonersDilemmaMatrixExhogenous Defect Defect = (1,1)
+
+conditionalCooperateTransferBribe :: ((ActionPD, Payoff, Double) -> ActionPD)
 conditionalCooperateTransferBribe (action,transfer,bribe) =
   if action == Cooperate && transfer >= bribe
      then Cooperate
@@ -74,15 +83,36 @@ aliceStrategyBribe :: Kleisli Stochastic () Double
 aliceStrategyBribe = pureAction 2
 
 -- Bob observes alice's bribe and takes a decision
-bobCooperateConditional :: Kleisli Stochastic Double ActionPD
+-- (fst (matrix Cooperate Cooperate)) - (fst (matrix Defect Defect)
+bobCooperateConditional :: Kleisli Stochastic (Double, (ActionPD -> ActionPD -> (Payoff,Payoff))) ActionPD
 bobCooperateConditional =
   Kleisli $
     (\case
-      bribe ->  ( if (bribe) <= 3-1 
+      (bribe,_) ->  ( if (bribe) <= 3-1 
                   then (playDeterministically Cooperate)
                   else (playDeterministically Defect)
                 )
     )
+
+-- bobCooperateConditional :: Kleisli Stochastic Double ActionPD
+-- bobCooperateConditional =
+--   Kleisli $
+--     (\case
+--       bribe ->  ( if (bribe) <= 3-1 
+--                   then (playDeterministically Cooperate)
+--                   else (playDeterministically Defect)
+--                 )
+--     )
+-- bobCooperateConditional ::  Kleisli Stochastic (Double) ActionPD
+-- bobCooperateConditional =
+--   Kleisli $
+--     (\case
+--       (bribe) -> ( if (bribe) <= 2
+--                     then (playDeterministically Cooperate)
+--                     else (playDeterministically Defect)
+                  
+--       )
+--     )
 
 -- Bob transfer strategy, has to match Alice's bribe
 transferStrategyBribe :: Kleisli Stochastic (ActionPD,Double) Double
