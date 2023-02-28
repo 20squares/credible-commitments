@@ -84,35 +84,16 @@ aliceStrategyBribe = pureAction 2
 
 -- Bob observes alice's bribe and takes a decision
 -- (fst (matrix Cooperate Cooperate)) - (fst (matrix Defect Defect)
-bobCooperateConditional :: Kleisli Stochastic (Double, (ActionPD -> ActionPD -> (Payoff,Payoff))) ActionPD
+bobCooperateConditional :: Kleisli Stochastic (Double, (Payoff, Payoff), (Payoff, Payoff)) ActionPD
 bobCooperateConditional =
   Kleisli $
     (\case
-      (bribe,_) ->  ( if (bribe) <= 3-1 
+      (bribe,coop,def) ->  ( if (bribe) <= fst coop - fst def
                   then (playDeterministically Cooperate)
                   else (playDeterministically Defect)
                 )
     )
 
--- bobCooperateConditional :: Kleisli Stochastic Double ActionPD
--- bobCooperateConditional =
---   Kleisli $
---     (\case
---       bribe ->  ( if (bribe) <= 3-1 
---                   then (playDeterministically Cooperate)
---                   else (playDeterministically Defect)
---                 )
---     )
--- bobCooperateConditional ::  Kleisli Stochastic (Double) ActionPD
--- bobCooperateConditional =
---   Kleisli $
---     (\case
---       (bribe) -> ( if (bribe) <= 2
---                     then (playDeterministically Cooperate)
---                     else (playDeterministically Defect)
-                  
---       )
---     )
 
 -- Bob transfer strategy, has to match Alice's bribe
 transferStrategyBribe :: Kleisli Stochastic (ActionPD,Double) Double

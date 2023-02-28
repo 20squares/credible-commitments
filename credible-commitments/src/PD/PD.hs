@@ -267,7 +267,7 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment payoffMatrix = [
    outputs   : decisionAliceBribe ;
    returns   : payoffAlice + decisionBobTransfer;
 
-   inputs    : decisionAliceBribe, payoffMatrix;
+   inputs    : decisionAliceBribe, (payoffMatrix Cooperate Cooperate), (payoffMatrix Defect Defect);
    feedback  :      ;
    operation : dependentDecision "Bob" (const [Cooperate,Defect]);
    outputs   : decisionBobCooperate ;
