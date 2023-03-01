@@ -571,8 +571,8 @@ In this case, keeping the prisoner's dilemma matrix fixed to the usual `(3,3), (
 
 ```haskell
 -- Alice chooses how high she wants to set the extortion fee 
-aliceStrategyExtortionFee :: Kleisli Stochastic () Double
-aliceStrategyExtortionFee = pureAction 2
+aliceStrategyCustomExtortionFee :: Kleisli Stochastic () Double
+aliceStrategyCustomExtortionFee = pureAction 2
 ```
 
 That is, just extorting the difference between `(Cooperate,Cooperate)` and `(Defect,Defect)`.
@@ -593,9 +593,9 @@ bobCooperateConditional =
 As for the extortion, **Bob** simply complies with **Alice**'s requests if cooperating, and pays `0` otherwise.
 
 ```haskell
--- Bob transfer strategy is to match Alice's extortion fee
-transferStrategyExtortionFee :: Kleisli Stochastic (ActionPD,Double) Double
-transferStrategyExtortionFee =
+-- Bob transfer strategy, has to match Alice's extortion fee
+transferStrategyCustomExtortionFee :: Kleisli Stochastic (ActionPD,Double) Double
+transferStrategyCustomExtortionFee =
   Kleisli $
     (\case
        (Cooperate,extortionFee) -> (playDeterministically extortionFee)
@@ -606,12 +606,12 @@ transferStrategyExtortionFee =
 The strategy tuple is very similar to the previous case:
 
 ```haskell
--- Aggregating into full strategy for commitment + transfer with bribe customizable
-strategyTupleCommitTransferExtortionFee =
+-- Aggregating into full strategy for commitment + transfer with extortion fee customizable
+strategyTupleCommitTransferCustomExtortionFee =
   aliceStrategyCommit     -- ^ which game does Alice choose?
-  ::- aliceStrategyExtortionFee  -- ^ if in the commitment game how high does Alice set the bribe?
+  ::- aliceStrategyCustomExtortionFee  -- ^ if in the commitment game how high does Alice set the extortion fee?
   ::- bobCooperateConditional   -- ^ if in the commitment game which action does Bob choose?
-  ::- transferStrategyExtortionFee  -- ^ if in the commitment game which transfer does Bob choose?
+  ::- transferStrategyCustomExtortionFee  -- ^ if in the commitment game which transfer does Bob choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil
@@ -802,8 +802,6 @@ privateValues2 = distFromList [(0,0.4),(6,0.2),(30,0.4)]
 ```
 
 As remarked in [The AMM game with private information](#the-amm-game-with-private-information-1), private information is held to be of type `Double`. The strategies are nevertheless initialized as probability distributions: This information is used to perform a *nature draw* (see [Basic operations](#basic-operations) for details) which draws a value from the distribution. The main reason to do so is that we do not know a priory which kind of player will utilize the AMM, even if the private information each player has is deterministic.
-
-## 
 
 
 ## Running the analytics
