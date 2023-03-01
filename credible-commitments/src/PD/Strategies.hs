@@ -72,6 +72,7 @@ prisonersDilemmaMatrixExogenous cooperativeValue defectValue Cooperate Defect   
 prisonersDilemmaMatrixExogenous cooperativeValue defectValue Defect Cooperate     = (cooperativeValue + defectValue,0)
 prisonersDilemmaMatrixExogenous cooperativeValue defectValue Defect Defect        = (defectValue,defectValue)
 
+-- We rework the commitment device just a little bit to accomodate for the customizable extortion fee
 conditionalCooperateTransferCustomExtortionFee :: ((ActionPD, Payoff, Double) -> ActionPD)
 conditionalCooperateTransferCustomExtortionFee (action,transfer,extortionFee) =
   if action == Cooperate && transfer >= extortionFee
@@ -83,7 +84,6 @@ aliceStrategyCustomExtortionFee :: Kleisli Stochastic () Double
 aliceStrategyCustomExtortionFee = pureAction 2
 
 -- Bob observes alice's extortion fee and takes a decision
--- (fst (matrix Cooperate Cooperate)) - (fst (matrix Defect Defect)
 bobCooperateConditional :: Kleisli Stochastic (Double, Payoff, Payoff) ActionPD
 bobCooperateConditional =
   Kleisli $
