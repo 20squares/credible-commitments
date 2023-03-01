@@ -2,7 +2,7 @@
 
 set output 'EquilibriumGraph.gif'
 
-set terminal gif transparent animate nooptimize delay 25 size 1500,1200
+set terminal gif animate nooptimize delay 25 size 1500,1200
 
 set key font "Monospace Regular, 18"
 
