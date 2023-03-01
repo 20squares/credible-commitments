@@ -61,7 +61,7 @@ transferStrategy =
     )
 
 
--- 2.1 Bribe size customizable
+-- 2.1 Extortion fee size customizable
 
 -- Commitment strategy with transfer
 
@@ -72,33 +72,33 @@ prisonersDilemmaMatrixExogenous cooperativeValue defectValue Cooperate Defect   
 prisonersDilemmaMatrixExogenous cooperativeValue defectValue Defect Cooperate     = (cooperativeValue + defectValue,0)
 prisonersDilemmaMatrixExogenous cooperativeValue defectValue Defect Defect        = (defectValue,defectValue)
 
-conditionalCooperateTransferBribe :: ((ActionPD, Payoff, Double) -> ActionPD)
-conditionalCooperateTransferBribe (action,transfer,bribe) =
-  if action == Cooperate && transfer >= bribe
+conditionalCooperateTransferCustomExtortionFee :: ((ActionPD, Payoff, Double) -> ActionPD)
+conditionalCooperateTransferCustomExtortionFee (action,transfer,extortionFee) =
+  if action == Cooperate && transfer >= extortionFee
      then Cooperate
      else Defect
 
--- Alice chooses how high she wants to set the bribe 
-aliceStrategyBribe :: Kleisli Stochastic () Double
-aliceStrategyBribe = pureAction 2
+-- Alice chooses how high she wants to set the extortion fee 
+aliceStrategyCustomExtortionFee :: Kleisli Stochastic () Double
+aliceStrategyCustomExtortionFee = pureAction 2
 
--- Bob observes alice's bribe and takes a decision
+-- Bob observes alice's extortion fee and takes a decision
 -- (fst (matrix Cooperate Cooperate)) - (fst (matrix Defect Defect)
 bobCooperateConditional :: Kleisli Stochastic (Double, Payoff, Payoff) ActionPD
 bobCooperateConditional =
   Kleisli $
-    (\(bribe,coop,def) ->
-       if bribe <= coop - def
+    (\(extortionFee,coop,def) ->
+       if extortionFee <= coop - def
            then (playDeterministically Cooperate)
            else (playDeterministically Defect))
 
 
--- Bob transfer strategy, has to match Alice's bribe
-transferStrategyBribe :: Kleisli Stochastic (ActionPD,Double) Double
-transferStrategyBribe =
+-- Bob transfer strategy, has to match Alice's extortion fee
+transferStrategyCustomExtortionFee :: Kleisli Stochastic (ActionPD,Double) Double
+transferStrategyCustomExtortionFee =
   Kleisli $
     (\case
-       (Cooperate,bribe) -> (playDeterministically bribe)
+       (Cooperate,extortionFee) -> (playDeterministically extortionFee)
        (Defect,_)    -> (playDeterministically 0)
     )
 
@@ -147,12 +147,12 @@ strategyTupleCommitTransfer =
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil
 
--- Aggregating into full strategy for commitment + transfer with bribe customizable
-strategyTupleCommitTransferBribe =
+-- Aggregating into full strategy for commitment + transfer with extortion fee customizable
+strategyTupleCommitTransferCustomExtortionFee =
   aliceStrategyCommit     -- ^ which game does Alice choose?
-  ::- aliceStrategyBribe  -- ^ if in the commitment game how high does Alice set the bribe?
+  ::- aliceStrategyCustomExtortionFee  -- ^ if in the commitment game how high does Alice set the extortion fee?
   ::- bobCooperateConditional   -- ^ if in the commitment game which action does Bob choose?
-  ::- transferStrategyBribe  -- ^ if in the commitment game which transfer does Bob choose?
+  ::- transferStrategyCustomExtortionFee  -- ^ if in the commitment game which transfer does Bob choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil

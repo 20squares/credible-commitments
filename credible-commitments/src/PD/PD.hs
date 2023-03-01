@@ -254,7 +254,7 @@ prisonersDilemmaAliceChoiceTransfer aliceCommitment = [opengame|
 
 -- 2.2.1 Prisoner's dilemma with commitment device _plus_ additional transfer by Bob, bribe customizable
 -- NOTE There are other options - explore this if of interest
-prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment payoffMatrix cooperateValue defectValue = [opengame|
+prisonersDilemmaBobUnderCommitmentTransferCustomExtortionFee aliceCommitment payoffMatrix cooperateValue defectValue = [opengame|
 
    inputs    :      ;
    feedback  :      ;
@@ -264,17 +264,17 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment payoffMatrix coo
    inputs    : ;
    feedback  :      ;
    operation : dependentDecision "Alice" (const [0,1,2,3]);
-   outputs   : decisionAliceBribe ;
+   outputs   : decisionAliceExtortionFee ;
    returns   : payoffAlice + decisionBobTransfer;
 
-   inputs    : decisionAliceBribe, cooperateValue, defectValue;
+   inputs    : decisionAliceExtortionFee, cooperateValue, defectValue;
    feedback  :      ;
    operation : dependentDecision "Bob" (const [Cooperate,Defect]);
    outputs   : decisionBobCooperate ;
    returns   : payoffBob - decisionBobTransfer;
    
 
-   inputs    : decisionBobCooperate, decisionAliceBribe;
+   inputs    : decisionBobCooperate, decisionAliceExtortionFee;
    feedback  :      ;
    operation : dependentDecision "Bob" (const [0,1,2,3,4,5]);
    outputs   : decisionBobTransfer ;
@@ -282,7 +282,7 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment payoffMatrix coo
    // Bob's strategy is conditional on his cooperate decision before
 
 
-   inputs    : (decisionBobCooperate,decisionBobTransfer,decisionAliceBribe) ;
+   inputs    : (decisionBobCooperate,decisionBobTransfer,decisionAliceExtortionFee) ;
    feedback  :      ;
    operation : forwardFunction $ aliceCommitment ;
    outputs   : decisionAlice ;
@@ -307,9 +307,9 @@ prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment payoffMatrix coo
 
 -- combined branching game
 -- NOTE this is a branching game; only one of the possible branches will be played
-branchingGameTransferBribe aliceCommitment matrix cooperateValue defectValue = (prisonersDilemmaBobUnderCommitmentTransferBribe aliceCommitment matrix cooperateValue defectValue) +++ prisonersDilemmaGameExogenous matrix cooperateValue defectValue
+branchingGameTransferCustomExtortionFee aliceCommitment matrix cooperateValue defectValue = (prisonersDilemmaBobUnderCommitmentTransferCustomExtortionFee aliceCommitment matrix cooperateValue defectValue) +++ prisonersDilemmaGameExogenous matrix cooperateValue defectValue
 
-prisonersDilemmaAliceChoiceTransferBribe aliceCommitment matrix cooperateValue defectValue = [opengame|
+prisonersDilemmaAliceChoiceTransferCustomExtortionFee aliceCommitment matrix cooperateValue defectValue = [opengame|
 
    inputs    :      ;
    feedback  :      ;
@@ -323,7 +323,7 @@ prisonersDilemmaAliceChoiceTransferBribe aliceCommitment matrix cooperateValue d
 
    inputs    : gameDecisionAlice ;
    feedback  :      ;
-   operation : branchingGameTransferBribe aliceCommitment matrix cooperateValue defectValue;
+   operation : branchingGameTransferCustomExtortionFee aliceCommitment matrix cooperateValue defectValue;
    outputs   : discard;
    returns   : ;
    // discard the output

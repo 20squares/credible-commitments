@@ -35,7 +35,7 @@ isEquilibriumPrisonersDilemmaAliceChoice conditionalCooperate strategyTupleCommi
 isEquilibriumPrisonersDilemmaAliceChoiceTransfer commitment strat = generateIsEq $ evaluate (prisonersDilemmaAliceChoiceTransfer commitment) strat void
 
 -- 4.1 Branching game with transfer + bribe
-isEquilibriumPrisonersDilemmaAliceChoiceTransferBribe commitment matrix cooperateValue defectValue strat = generateIsEq $ evaluate (prisonersDilemmaAliceChoiceTransferBribe commitment matrix cooperateValue defectValue) strat void
+isEquilibriumPrisonersDilemmaAliceChoiceTransferCustomExtortionFee commitment matrix cooperateValue defectValue strat = generateIsEq $ evaluate (prisonersDilemmaAliceChoiceTransferCustomExtortionFee commitment matrix cooperateValue defectValue) strat void
 
 {- Example usage:
 isEquilibriumPrisonersDilemmaAliceChoiceTransfer conditionalCooperateTransfer strategyTupleCommitTransfer
