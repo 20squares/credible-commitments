@@ -859,7 +859,7 @@ As for the AMM, things were more complicated. As we mentioned in [Strategies emp
 
     We investigated these equilibria more, and found interesting conclusions. Keeping all the other parameters fixed, we varied the size of the swaps and their direction (so we used both `Swap0` and `Swap1`). The resulting equilibrium fees have been plotted in this graph:
 
-    ![Equilibria as the swap size varies](pics/EquilibriumGraph.gif)
+    ![Equilibria as the swap size varies](pics/equilibriumGraph.gif)
 
     We varied the swap sizes in a range going from $0$ to $50$. In the plot, negative values represent instances of `Swap0`, whereas positive values instances of `Swap1`. We notice the following things:
 
