@@ -11,6 +11,7 @@
     - [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device)
     - [Prisoner's dilemma with branching](#prisoners-dilemma-with-branching)
     - [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion)
+    - [Prisoner's dilemma with customizable extortion](#prisoners-dilemma-with-customizable-extortion)
     - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator)
     - [Assumptions made explicit](#assumptions-made-explicit)
     - [The AMM game](#the-amm-game)
@@ -34,6 +35,7 @@
         - [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device-1)
         - [Prisoner's dilemma with branching](#prisoners-dilemma-with-branching-1)
         - [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion-1)
+        - [Prisoner's dilemma with customizable extortion](#prisoners-dilemma-with-customizable-extortion-1)
         - [Prisoner's dilemma with a coordinator](#prisoners-dilemma-with-a-coordinator-1)
         - [The AMM game](#the-amm-game-1)
         - [The AMM game with private information](#the-amm-game-with-private-information-1)
@@ -161,6 +163,9 @@ We then merged [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma) and [Pri
 Afterwards, we generalized the situation further into a game where the commitment device is turned into an *extortion device*. The game works as the  prisoner's dilemma with commitment, with the difference that now **Alice**, in order to play **Cooperate** which would result into a better outcome for **Bob**, also requires the payment of a bribe. So **Bob** must now choose between cooperating and being extorted, or defecting.
 As before, we combine the extortion game with a traditional prisoner's dilemma game using branching. Here, we expect that the Nash equilibrium consists in **Alice** choosing to use the extortion device, and **Bob** paying the bribe up to some value, beyond which choosing to play `Defect` results into a profitable deviation.
 
+### Prisoner's dilemma with customizable extortion
+
+We implemented this variation on a separate branch, called `alice-strategic-extortion`. Here, **Alice** can strategically set the value of the extortion. **Bob**, in turn, can see both the extortion value and the payoff matrix, and determine if it is more convenient for him to cooperate (and get extorted) or just defect. We expect the equilibrium being **Alice** extorting exactly enough so that there is no difference for **Bob** to Cooperate or Defect. 
 
 ### Prisoner's dilemma with a coordinator
 
@@ -375,7 +380,7 @@ In this game the best strategy is clearly (A,A1). Nevertheless, we need to suppl
 
 ## File structure
 
-The model is composed of several files, stored in two branches. In the `main` branch:
+The model is composed of several files, stored in three branches. In the `main` branch:
 
 - The `app` folder contains `Main.hs`, where the `main` function is defined. This is the function executed when one gives `stack run` (cf. [Running the analytics](#running-the-analytics)).
 - The `pics` folder exists only for the purpose of this documentation file.
@@ -409,7 +414,9 @@ The other folder we provide is `AMM`. Here the file structure is the following:
 - `Payoffs.hs` defines the payoff functions, both for players and **Coordinator**.
 -  `Types.hs` defines the types of many of the things we use in our model, such as AMM state, payoff types etc.
 
-The other branch, called `private-information`, is just built on top of the `main` branch. It implements a variation of [The AMM game](#the-amm-game) game case that is suitably modified to accomodate for players having private information. File structure is unchanged.
+The second branch, called `private-information`, is just built on top of the `main` branch. It implements a variation of [The AMM game](#the-amm-game) game case that is suitably modified to accomodate for players having private information, see [The AMM game with private information](#the-amm-game-with-private-information). File structure is unchanged.
+
+The third branch, called `alice-strategic-extortion` is again built on top of `main` and considers a more involved version of [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion), where the payoff matrix is made exogenous and Alice can strategically set the extortion value, see [Prisoner's dilemma with customizable extortion](#prisoners-dilemma-with-customizable-extortion).
 
 # Analytics
 
@@ -553,6 +560,58 @@ strategyTupleCommitTransfer =
   aliceStrategyCommit     -- ^ which game does Alice choose?
   ::- cooperateStrategy   -- ^ if in the commitment game which action does Bob choose?
   ::- transferStrategy -- ^ if in the commitment game which transfer does Bob choose?
+  ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
+  ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
+  ::- Nil
+```
+
+### Prisoner's dilemma with customizable extortion
+
+In this case, keeping the prisoner's dilemma matrix fixed to the usual `(3,3), (0,3), (3,0), (1,1)` we see that the best strategy for **Alice** is:
+
+```haskell
+-- Alice chooses how high she wants to set the extortion fee 
+aliceStrategyExtortionFee :: Kleisli Stochastic () Double
+aliceStrategyExtortionFee = pureAction 2
+```
+
+That is, just extorting the difference between `(Cooperate,Cooperate)` and `(Defect,Defect)`.
+
+As for **Bob**, his strategy is simply to `Cooperate` as the `(Cooperate,Cooperate)` payoff, minus the extortion fee, is more or equal to the payoff `(Defect,Defect)`.
+
+```haskell
+-- Bob observes alice's extortion fee and takes a decision
+bobCooperateConditional :: Kleisli Stochastic (Double, Payoff, Payoff) ActionPD
+bobCooperateConditional =
+  Kleisli $
+    (\(extortionFee,coop,def) ->
+       if extortionFee <= coop - def
+           then (playDeterministically Cooperate)
+           else (playDeterministically Defect))
+```
+
+As for the extortion, **Bob** simply complies with **Alice**'s requests if cooperating, and pays `0` otherwise.
+
+```haskell
+-- Bob transfer strategy is to match Alice's extortion fee
+transferStrategyExtortionFee :: Kleisli Stochastic (ActionPD,Double) Double
+transferStrategyExtortionFee =
+  Kleisli $
+    (\case
+       (Cooperate,extortionFee) -> (playDeterministically extortionFee)
+       (Defect,_)    -> (playDeterministically 0)
+    )
+```
+
+The strategy tuple is very similar to the previous case:
+
+```haskell
+-- Aggregating into full strategy for commitment + transfer with bribe customizable
+strategyTupleCommitTransferExtortionFee =
+  aliceStrategyCommit     -- ^ which game does Alice choose?
+  ::- aliceStrategyExtortionFee  -- ^ if in the commitment game how high does Alice set the bribe?
+  ::- bobCooperateConditional   -- ^ if in the commitment game which action does Bob choose?
+  ::- transferStrategyExtortionFee  -- ^ if in the commitment game which transfer does Bob choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Alice choose?
   ::- defectStrategy      -- ^ if in the pd game which action does Bob choose?
   ::- Nil
@@ -744,6 +803,8 @@ privateValues2 = distFromList [(0,0.4),(6,0.2),(30,0.4)]
 
 As remarked in [The AMM game with private information](#the-amm-game-with-private-information-1), private information is held to be of type `Double`. The strategies are nevertheless initialized as probability distributions: This information is used to perform a *nature draw* (see [Basic operations](#basic-operations) for details) which draws a value from the distribution. The main reason to do so is that we do not know a priory which kind of player will utilize the AMM, even if the private information each player has is deterministic.
 
+## 
+
 
 ## Running the analytics
 
@@ -797,6 +858,21 @@ As for the AMM, things were more complicated. As we mentioned in [Strategies emp
     where `fee1` and `fee2` are numbers (`Double`).    
     Moreover, we also implemented the function `idFee` which searches over the space of possible fees and prints the pairs resulting in equilibrium. Again, this can be tested in [Interactive execution](#interactive-execution) mode. This function is also automatically run in `main`, as one can see by running `stack run`. So we see that, having hardcoded some initial parameters, `idFee` finds what are the optimal fees that players should pay to **Coordinator**.
     We found that the couples `(13,13)` and `(14,14)` result in equilibria.
+
+    We investigated these equilibria more, and found interesting conclusions. Keeping all the other parameters fixed, we varied the size of the swaps and their direction (so we used both `Swap0` and `Swap1`). The resulting equilibrium fees have been plotted in this graph:
+
+    ![Equilibria as the swap size varies](pics/EquilibriumGraph.gif)
+
+    We varied the swap sizes in a range going from $0$ to $50$. In the plot, negative values represent instances of `Swap0`, whereas positive values instances of `Swap1`. We notice the following things:
+
+    - First of all, for each choice of transaction size there are either one or two equilibria, which is why there are two surfaces in the plot.
+    - Secondly, the fees giving equilibria are symmetric for both players. That is, the equilibria always entails that players pay the same fee (which by the way is why we do not need four dimensions to plot this graph). So, for instance, we can see that at the point $(50,50)$ in the plot the equilibria are $(15,15), (16,16)$.
+
+    - The symmetry of equilibria is understood by noticing that both players can see the other player transaction. As such, both players can infer how much impactful is the slippage in proportion to the entity of their respective swaps. Moreover, they know that the game is 'winner takes all', as only the highest bidder gets the first position in the block. Since they both have access to the same information, they converge to the same set of admissible optimal fees.
+
+    - Unsurprisingly, the case when both players call `Swap0` and the one when both players call `Swap1` are completely symmetric. This is due to the fact that the AMM has been boostrapped with the value $(100,100)$ which denotes the assets having the same price at the beginning of the game.
+
+    - More surprising instead is the case where players call opposite functions: In this case the only equilibrium is $(0,0)$. This is easily explained by noticing that if players call swaps in opposite directions, the player going *second* will have the biggest advantage. As such, both players compete to bet to the *bottom* of the block, and the only rational thing to do is betting as little as possible!
 
 - On the other hand, we covered the case of an altruistic **Coordinator**. In this case, **Coordinator**'s payoff is taken to be the sum of the utilities of both players, so the more players are collectively gaining, the more **Coordinator** gains. 
 We verified that in this setup the optimal strategy for players is not paying any fees: This makes sense as **Coordinator** simply discards them, so paying fee would just result in a lower payoff for everyone.
