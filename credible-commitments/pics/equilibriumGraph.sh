@@ -1,6 +1,6 @@
 #!/bin/gnuplot -persist
 
-set output 'EquilibriumGraph.gif'
+set output 'equilibriumGraph.gif'
 
 set terminal gif animate nooptimize delay 25 size 1500,1200
 
