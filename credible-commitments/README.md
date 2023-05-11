@@ -5,6 +5,11 @@
     - [Normal execution](#normal-execution)
     - [Interactive execution](#interactive-execution)
     - [Addendum: Installing haskell](#addendum-installing-haskell)
+        - [Installing through `nix` (recommended)](#installing-through-nix-recommended)
+          - [Installing `nix`](#installing-nix)
+          - [Setting up the environment](#setting-up-the-environment)
+          - [Freeing space](#freeing-space)
+        - [Installing through GHCup](#installing-through-ghcup)
 - [Explaining the model](#explaining-the-model)
     - [Recap: credible commitments](#recap-credible-commitments)
     - [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma)
@@ -42,9 +47,13 @@
     - [Running the analytics](#running-the-analytics)
     - [Results](#results)
     - [Sanity checks](#sanity-checks)
+
+
+
 # Summary
 
 In this FRP we focused on modelling some of the thought experiments around prisoner's dilemma with credible commitments as detailed in [Xin's research](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). We then generalized these experiments to a more tangible case involving frontrunning and swaps in an *automatic market maker (AMM)*.
+
 
 ## Analytics results
 
@@ -64,11 +73,13 @@ As for [The AMM game](#the-amm-game),
 - We verified that in the presence of players' private information, as in [The AMM with private information](#the-amm-game-with-private-information) game, the old equilibrium for the welfare-maximizing coordinator breaks down.
 
 
+
 # Installation
 
 To run the model, it is necessary to have `haskell` and `stack` installed on your machine. Refer to the subsection [Addendum: Installing haskell](#addendum-installing-haskell) for instructions. A deeper dive into the code structure can be found in the [Code deep dive](#code-deep-dive) subsection.
 
 There are two main ways of running the model: normal and interactive execution.
+
 
 ## Normal execution
 
@@ -79,6 +90,7 @@ stack run
 ```
 in the main directory, where the file `stack.yaml` is located.
 The model will be compiled and a predefined set of analytics will be run. The results of the predefined analytics will be shown on terminal.
+
 
 ## Interactive execution
 
@@ -108,8 +120,60 @@ Since under the hood games are nothing more than functions, REPL allows us to se
 
 This tool is expecially powerful to better understand the structure of the strategies we have to feed to the model, which can grow very complicated as the model scales.
 
+
 ## Addendum: Installing haskell
-If you dont' have either `haskell` or `stack`, it is necessary to install them. there are many ways to do so; on Linux/macOS systems, we suggest using [ghcup](https://www.haskell.org/ghcup/).
+
+If you dont' have either `haskell` or `stack`, it is necessary to install them. There are many ways to do so, of which we propose two: The first one, which we recommend, is through the [`nix`](https://nixos.org/download.html) package manager. The second one, is via [`GHCup`](https://www.haskell.org/ghcup/).
+
+### Installing through `nix` (recommended)
+
+[`nix`](https://nixos.org/download.html) is a package manager that allows to build environments deterministically. This means that it offers the right granularity to set up a developing environment exactly as one wants it. All of our projects get shipped together with something called a *`nix` flake*, which is a set of instructions telling `nix` to install all needed dependencies precisely at the version we used during development. This drastically reduces the possibility of compiling/execution errors and it is why we strongly recommend using `nix`.
+
+#### Installing `nix`
+
+To install `nix`, follow the [official instructions](https://nixos.org/download.html) for your operating system. Please note that on windows this will require installing [WSL2](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux) first. 
+
+`nix` flakes require enabling experimental features to work properly. To do so in a Unix-based system, type the following commands in a terminal:
+
+```sh
+mkdir -p ~/.config/nix
+echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+```
+
+On other operating systems the procedure may be different.
+
+#### Setting up the environment
+
+Now that `nix` is up and running, we can fire up the environment. In a terminal, navigate in the main repo folder, where `flake.nix` is. Before running any command, type
+
+```sh
+nix develop
+```
+
+This will create a reproducible ephemeral devshell exposing all the required dependencies for running the project (slack, ghc, haskell-language-sever). Please note that this will take around 7GB of space.
+
+While in the devshell, you can proceed as in [Normal execution](#normal-execution) and [Interactive execution](#interactive-execution). When you're done trying out the model, you can type
+
+```sh
+exit
+```
+
+or close the terminal window to exit from the devshell.
+
+
+#### Freeing space
+
+If you do not plan to use the model in the foreseeable future and want to reclaim some hard-disk space, in a terminal (outside the `nix develop` environmnet) just give:
+
+```sh
+nix-collect-garbage
+nix store optimise
+```
+
+
+### Installing through `GHCup`
+
+Another way to set up the environment to run the project is via [`GHCup`](https://www.haskell.org/ghcup/).
 In a terminal, type:
 
 ```sh
@@ -120,43 +184,46 @@ If asked, respond 'yes' (`Y`) to the following questions:
 
 ```
 Do you want to install haskell-language-server (HLS)?
-Do you want to enable better integration of stack with GHCup?
+Do you want to enable better integration of stack with `GHCup`?
 ```
 
-Afterwards, `ghcup` may ask you to install some additional packages before continuing with the installation. Follow the advice before continuing. Then, just follow the instructions through the end.
+Afterwards, `GHCup` may ask you to install some additional packages before continuing with the installation. Follow the advice before continuing. Then, just follow the instructions through the end.
 
-`ghcup` is a very convenient solution in that it installs only in one folder (on Linux systems, `/home/$USER/.ghcup`). Should you decide to get rid of `haskell` altogether, just delete the folder.
+Again, the installation is quite massive in terms of space. In this respect, `GHCup` is a convenient solution in that it installs only in one folder (on Linux systems, `/home/$USER/.ghcup`). Should you decide to get rid of `haskell` altogether, just delete the folder.
 
-**A note of warning:** GHC, the `haskell` compiler installed with `ghcup`, relies heavily on the GCC compiler. GHC assumes that GCC comes together with all the relevant libraries. As such, in compiling the model you may get errors such as:
+Again, once `GHCup` has installed, you can proceed as in [Normal execution](#normal-execution) and [Interactive execution](#interactive-execution).
+
+**A note of warning:** GHC, the `haskell` compiler installed with `GHCup`, relies heavily on the GCC compiler. GHC assumes that GCC comes together with all the relevant libraries. As such, in compiling the model you may get errors such as:
 
 ```sh
 /usr/bin/ld.gold: error: cannot find -ltinfo
 ```
+
 these errors hint at missing GCC libraries, which will have to be installed independently. The precise iter to do so depends on the libraries involved and on your operating system. Unfortunately there is little we can do about it, as this is a problem with the general `haskell` developer infrastructure.
+
+The main way to avoid this is by using the recommended installation via [`nix`](#installing-through-nix-recommended).
+
 
 
 # Explaining the model
 
 Here, we give a more detailed explanation of what our model does.
 
+
 ## Recap: credible commitments
 Our model is based on Xin's research on [credible commitments](https://docs.google.com/presentation/d/1on6OpmjEuFQ5HQOx6b6JjWzUHZx5pBoWbxVJyKAFS_c/edit#slide=id.p). The model comprises a bunch of different games, each one being expanded into the next one:
-
 
 ### Vanilla prisoner's dilemma
 
 First of all, we implemented a very basic [prisoner's dilemma](https://en.wikipedia.org/wiki/Prisoner%27s_dilemma): There are two players, **Alice** and **Bob**, each one having to choose between `Cooperate` and `Defect`. Their choices get submitted to a payoff matrix structured so that the pair `(Defect, Defect)` is the only possible [Nash equilibrium](https://en.wikipedia.org/wiki/Nash_equilibrium). This is a straightforward implementation of a very famous game, and we won't dwell further on it.
 
-
 ### Prisoner's dilemma with a commitment device
 
 The next game is prisoner's dilemma with a *commitment device*: Essentially, this is a version of prisoner's dilemma where **Alice**'s strategic choice is replaced by an [exogenous](#exogenous-parameters) function, which we call `commitment`. The idea is simple: **Alice**'s strategy now consists in supplying a commitment which announces beforehand how she intends to respond to **Bob**'s choice. In the case we are most interested in, **Alice**'s strategy consists in supplying a function which will result in `Cooperate` if **Bob**'s choice is `Cooperate`, and `Defect` if **Bob**'s choice is **Defect**. We expect that in this scenarios the Nash equilibrium shifts towards **Bob** playing `Cooperate`.
 
-
 ### Prisoner's dilemma with branching
 
 We then merged [Vanilla prisoner's dilemma](#vanilla-prisoners-dilemma) and [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device) into a [branching game](#branching): Here, **Alice** can first choose if she wants to play vanilla prisoner's dilemma or prisoner's dilemma with commitment. Both **Alice** and **Bob** need to supply strategies for each of the two possible [branchings](#branching-1). We expect that the Nash equilibrium strategies are to play the version with the commitment device, and then cooperate.
-
 
 ### Prisoner's dilemma with extortion
 
@@ -195,6 +262,7 @@ The players are considered to be *uncorrelated*. This means that players' privat
 
 
 ## Assumptions made explicit
+
 Regarding the variations over prisoner's dilemma, thanks to the high quality of the original research we started from, we were able to implement things 'as is', without having to make anything more explicit than it already was.
 
 For the AMM case, we had to be a bit more careful: In particular, we assumed that the fee a player pays to **Coordinator** is taken irrespective of the outcome of the transaction: That is, even if the transaction reverts, the fee is paid anyway. As usual, we model **Alice** and **Bob** as rational, just willing to maximize their payoff. To take slippage into account, we passed a 'real' `exchangeRate` as an [exogenous parameter](#exogenous-parameters): This represents the 'real world' conversion rate between the couple of tokens we consider. In the beginning, the AMM is initialized so that the tokens in the pool reflect this rate. As things progress, the rate given in the AMM *slips* from the real world one.
@@ -204,13 +272,16 @@ Furthermore, we fixed the transaction type for both **Alice** and **Bob**. This 
 As for the AMM architecture itself, we resorted to a very simple [constant function AMM](https://en.wikipedia.org/wiki/Constant_function_market_maker).
 
 
+
 # Code deep dive
+
 
 ## Recap: DSL primer
 
 Our models are written in a custom DSL compiled to `haskell`. Here we give a brief description of how our software works.
 
 ### The building blocks
+
 The basic building block of our model is called **open game**, and can be thought of as a game-theoretic lego brick. This may represent a player, a nature draw, a payoff matrix or a complex combination of these elements. It has the following form:
 
 ```haskell
@@ -320,7 +391,6 @@ Branching is represented using the operator `+++`. So, for instance, if `SubGame
 
 Graphically, branching can be represented by resorting to [sheet diagrams](https://arxiv.org/abs/2010.13361), but as they are quite complicated to draw, this depiction is rarely used in practice.
 
-
 ### Supplying strategies
 
 As usual in classical game theory, a strategy conditions on the observables and assigns a (possibly randomized) action. 
@@ -337,7 +407,6 @@ strGame1 ::- strGame2 ::- strGame3 ::- Nil
 
 To evaluate strategies, it is enough to just run the `main` function defined in `Main.hs`. This is precisely what happens when we give the command `stack run`. In turn, `main` invokes functions defined in `Analysis.hs` which define the right notion of equilibrium to check. If you want to change strategies on the fly, just open a REPL (Cf. [Interactive Execution](#interactive-execution)) and give the command `main`.
 You can make parametric changes or even define new strategies and/or notions of equilibrium by editing the relevant files (cf. [File structure](#file-structure)). Once you save your edits, giving `:r` will recompile the code on the fly. Calling `main` again will evaluate the changes.
-
 
 #### Stochasticity
 
@@ -365,6 +434,7 @@ In the example above, the player observes some parameters (`Parameter1` and `Par
 The upside of assuming this little amount of overhead is that switching from pure to mixed strategies can be easily done on the fly, without having to change the model beforehand.
 
 #### Branching
+
 As a word of caution notice that, in a game with branching, we need to provide a possible strategy for each branch. For example, suppose to have the following game:
 
 - Player 1 can choose between option A and B;
@@ -417,6 +487,8 @@ The other folder we provide is `AMM`. Here the file structure is the following:
 The second branch, called `private-information`, is just built on top of the `main` branch. It implements a variation of [The AMM game](#the-amm-game) game case that is suitably modified to accomodate for players having private information, see [The AMM game with private information](#the-amm-game-with-private-information). File structure is unchanged.
 
 The third branch, called `alice-strategic-extortion` is again built on top of `main` and considers a more involved version of [Prisoner's dilemma with extortion](#prisoners-dilemma-with-extortion), where the payoff matrix is made exogenous and Alice can strategically set the extortion value, see [Prisoner's dilemma with customizable extortion](#prisoners-dilemma-with-customizable-extortion).
+
+
 
 # Analytics
 
@@ -487,7 +559,6 @@ strategyTupleDefect = defectStrategy ::- defectStrategy ::- Nil
 -- ^ Both players defect with certainty
 ```
 
-
 ### Prisoner's dilemma with a commitment device
 
 For [Prisoner's dilemma with a commitment device](#prisoners-dilemma-with-a-commitment-device), the commitment function is itself fed as a strategic choice. We choose to fed the function:
@@ -502,7 +573,6 @@ conditionalCooperate action =
 ```
 
 This is the same function used in Xin's research report.
-
 
 ### Prisoner's dilemma with branching
 
@@ -663,7 +733,6 @@ strategyTupleCoordinator =
   ::- Nil
 ```
 
-
 ### The AMM game
 
 In [The AMM game](#the-amm-game), we define the following strategies, defining the basic type of swap transaction and the fee to be paid to **Coordinator**: 
@@ -816,6 +885,7 @@ functionName parameters
 
 In particular, calling the function `main` in interactive mode will result in the same behavior of calling `stack run` in normal mode. Again, editing the source code and then hitting `:r` will trigger recompilation on the fly.
 
+
 ## Results
 
 The summary of our results can be found right at the top of this document, at the subsection [analytics results](#analytics-results). 
@@ -877,7 +947,6 @@ We verified that in this setup the optimal strategy for players is not paying an
 We verified that the equilibrium is obtained when **Coordinator** orders the transactions to *collectively* minimize both player's payoffs. 
 
 - Finally, in the case of private information, the altruistic **Coordinator** will only maximize the expected utility *ex-ante*: In simple words, **Coordinator** does not have access to the player's private information, so it can only maximize the 'visible portion' of players payoffs. We showed that picking the 'best transaction order' as in the previous case does not result anymore in a equilibrium, exactly because the 'true' welfare is unknown to **Coordinator**, which essentially 'has to guess'.
-
 
 ### Sanity checks
 
